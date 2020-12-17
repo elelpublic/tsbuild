@@ -1,0 +1,16 @@
+{
+  "name": "tsbuild",
+  "version": "0.1.0",
+  "description": "A minimal javascript/typescript build system for me.",
+  "main": "./tsb",
+  "scripts": {
+    "test": "tests/alltests.js",
+    "build": "build.js"
+  },
+  "keywords": [
+    "Typescript",
+    "Build"
+  ],
+  "author": "https://github.com/elelpublic",
+  "license": "LGPL-2.1"
+}

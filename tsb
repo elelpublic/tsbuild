@@ -1,0 +1,149 @@
+#!/usr/bin/env node
+
+let t0 = Date.now();
+
+console.log( " _       _           _ _     _" );
+console.log( "| |_ ___| |__  _   _(_) | __| |" );
+console.log( "| __/ __| '_ \\| | | | | |/ _` |" );
+console.log( "| |_\\__ \\ |_) | |_| | | | (_| |" );
+console.log( " \\__|___/_.__/ \\__,_|_|_|\\__,_|" );
+
+const { exit, listenerCount } = require('process');
+var packageJson = require( './package.json' );
+console.log( "                         tsbuild " + packageJson.version );
+
+console.log( "" );
+console.log( "Current project: " + packageJson.name + " " + packageJson.version );
+console.log( "" );
+
+if( process.argv.length == 2 ) {
+  usage( "ERROR: Missing arguments." );
+}
+else {
+
+  let command = process.argv[ 2 ];
+
+  if( command == "main" ) {
+
+    if( !packageJson.main ) {
+      usage( "ERROR: No 'main' entry found in package.json" );
+    }
+    else {
+      exec( packageJson.main );
+    }
+
+  }
+  else if( command == "run" ) {
+
+    if( process.argv.length < 4 ) {
+      usage( "ERROR: Missing parameter <script>" );
+    }
+    else {
+
+      let scriptName = process.argv[ 3 ];
+      let scriptNumber = parseInt( scriptName );
+
+      let script;
+      if( isNaN( scriptNumber ) ) {
+        script = packageJson.scripts[ scriptName ];
+      }
+      else { 
+        script = Object.values( packageJson.scripts )[ scriptNumber - 1 ];
+      }
+
+      if( !script ) {
+        usage( "No such script found: '" + scriptName + "'" );
+      }
+      else {
+        exec( script );  
+      }
+
+    }
+
+  }
+  else {
+    usage( "ERROR: Unknown command " + command );
+  }
+  
+}
+
+console.log( "Finished after " + (Date.now() - t0) + " millis." );
+console.log( "" );
+
+// * * * ----------------------------------------------
+
+
+/**
+ * Show a message and the usage information
+ * 
+ * @param message Extra message
+ * 
+ */
+function usage( message ) {
+
+  console.log( "Usage:" );
+  console.log( "" );
+  console.log( "./tsb ............................ show this help" );
+  console.log( "./tsb main ....................... run the main command from package.json" );
+  console.log( "./tsb run <script> / <number> .... run a script from the scripts section of package.json" );
+  console.log( "" );
+  console.log( "If this does not work (i.e. on windows), try: node tsb" );
+  console.log( "" );
+
+  list();
+  console.log( "" );
+
+  if( message ) {
+    console.log( "# ---------------------------------------------------------------------" );
+    console.log( "# " + message );
+    console.log( "# ---------------------------------------------------------------------" );
+    console.log( "" );
+  }
+
+}
+
+/**
+ * Execute shell command
+ * 
+ * @param command Shell command
+ * 
+ */
+function exec( command ) {
+
+  console.log( "Running script: " + command );
+
+  const { spawn } = require( "child_process" );
+  
+  const proc = spawn( command );
+
+  proc.stdout.on("data", data => {
+      console.log( `${data}` );
+  });
+
+  proc.stderr.on("data", data => {
+    console.log( `${data}` );
+  });
+
+  proc.on('error', (error) => {
+    console.log( error ? error : "" );
+  });
+
+  proc.on("close", code => {
+    console.log( "return code: " + code );
+  });
+
+}
+
+/**
+ * Show available scripts
+ * 
+ */
+function list() {
+  console.log( Object.keys( packageJson.scripts ).length + " scripts found:" );
+  let counter = 1;
+  console.log( "" );
+  for( scriptName in packageJson.scripts ) {
+    console.log( counter++ + ": " + scriptName );
+  }
+}
+

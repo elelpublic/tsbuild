@@ -343,7 +343,7 @@ function createRunner() {
     /**
      * Task: Call typescript compile tsc
      * 
-     * @param file Optional file specified (for example: *.tsc)
+     * @param config.file Optional file specified (for example: *.tsc)
      * 
      */
     tsc: function( config ) {
@@ -352,6 +352,31 @@ function createRunner() {
         file = config.file;
       }
       this.exec( "tsc " + file );
+    },
+
+    /**
+     * Task: Run nodejs script
+     * 
+     * @param config.file Optional file specified (for example: *.tsc)
+     * 
+     */
+    node: function( config ) {
+      if( !config || !config.file ) {
+        usage( "Error: no test script specified" );
+      }
+      else {
+        this.exec( "node " + config.file );
+      }
+    },
+
+    /**
+     * Task: Run unit test with tsunit
+     * 
+     * @param config.file File containg unit tests
+     * 
+     */
+    test: function( config ) {
+      this.node( config );
     }
 
   };

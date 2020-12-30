@@ -2,104 +2,184 @@
 
 let t0 = Date.now();
 
-console.log( " _       _           _ _     _" );
-console.log( "| |_ ___| |__  _   _(_) | __| |" );
-console.log( "| __/ __| '_ \\| | | | | |/ _` |" );
-console.log( "| |_\\__ \\ |_) | |_| | | | (_| |" );
-console.log( " \\__|___/_.__/ \\__,_|_|_|\\__,_|" );
-
-const { exit, listenerCount } = require('process');
-var packageJson = require( './package.json' );
-console.log( "                         tsbuild " + packageJson.version );
-
-console.log( "" );
-console.log( "Current project: " + packageJson.name + " " + packageJson.version );
+console.log( "# ---------------------------------------------------------------------" );
+console.log( "                                         _       _           _ _     _" );
+console.log( "                                        | |_ ___| |__  _   _(_) | __| |" );
+console.log( "                                        | __/ __| '_ \\| | | | | |/ _` |" );
+console.log( "                                        | |_\\__ \\ |_) | |_| | | | (_| |" );
+console.log( "                                         \\__|___/_.__/ \\__,_|_|_|\\__,_|" );
+console.log( "                                                          tsbuild 0.2.0" );
+console.log( "# ---------------------------------------------------------------------" );
 console.log( "" );
 
-if( process.argv.length == 2 ) {
-  usage( "ERROR: Missing arguments." );
+let commandLine = parseCommandLine();
+
+let project = loadTaskFile();
+
+if( project.error ) {
+  usage( project.errorMessage );
 }
 else {
 
-  let command = process.argv[ 2 ];
-
-  if( command == "main" ) {
-
-    if( !packageJson.main ) {
-      usage( "ERROR: No 'main' entry found in package.json" );
+  if( commandLine.runDefaultTask ) {
+    if( !project.defaultTask ) {
+      usage( "Error: Cannot run default task because no default task is defined.")
     }
     else {
-      exec( packageJson.main );
+      commandLine.tasks.push( project.defaultTask );
     }
-
   }
-  else if( command == "run" ) {
 
-    if( process.argv.length < 4 ) {
-      usage( "ERROR: Missing parameter <script>" );
-    }
-    else {
-
-      let scriptName = process.argv[ 3 ];
-      let scriptNumber = parseInt( scriptName );
-
-      let script;
-      if( isNaN( scriptNumber ) ) {
-        script = packageJson.scripts[ scriptName ];
-      }
-      else { 
-        script = Object.values( packageJson.scripts )[ scriptNumber - 1 ];
-      }
-
-      if( !script ) {
-        usage( "No such script found: '" + scriptName + "'" );
-      }
-      else {
-        exec( script );  
-      }
-
-    }
-
+  if( commandLine.tasks.length == 0 ) {
+    usage( "Please define one or more tasks to run or run with option -d" );
   }
   else {
-    usage( "ERROR: Unknown command " + command );
-  }
+
+    let tsb = createRunner();
+    let alreadyCalled = {};
   
+    for( let i = 0; i < commandLine.tasks.length; i++ ) {
+  
+      let taskName = commandLine.tasks[ i ];
+      call( taskName, alreadyCalled, project, tsb );
+  
+    }
+    
+  }
+
 }
 
+console.log( "" );
 console.log( "Finished after " + (Date.now() - t0) + " millis." );
 console.log( "" );
+  
 
 // * * * ----------------------------------------------
+
+
+function call( taskName, alreadyCalled, project, tsb ) {
+
+  let task = project.tasks[ taskName ];
+  if( !task ) {
+    throw "Error: task '" + taskName + "' not found.";
+  }
+  else {
+
+    // call dependencies first
+    if( task.depends ) {
+      for( let i = 0; i < task.depends.length; i++ ) {
+        let dependencyName = task.depends[ i ];
+        call( dependencyName, alreadyCalled, project, tsb );
+      }
+    }
+
+    if( !alreadyCalled[ taskName ] ) {
+
+      alreadyCalled[ taskName ] = true;
+      let task = project.tasks[ taskName ];
+
+      // call the actual task last
+      try {
+        log( "Performing task: '" + taskName + "'" );
+        task.code( tsb );
+      }
+      catch( error ) {
+        message( "Error in task '" + taskName + "':\n" + error );
+      }
+
+    }
+
+  }
+
+}
 
 
 /**
  * Show a message and the usage information
  * 
- * @param message Extra message
+ * @param messageText Extra message
  * 
  */
-function usage( message ) {
+function usage( messageText ) {
 
   console.log( "Usage:" );
+  console.log( "  tsb [options] default | [task [task2 [task3]  ..]]" );
   console.log( "" );
-  console.log( "./tsb ............................ show this help" );
-  console.log( "./tsb main ....................... run the main command from package.json" );
-  console.log( "./tsb run <script> / <number> .... run a script from the scripts section of package.json" );
+  console.log( "Runs the given tasks or the default task if no task is given." );
   console.log( "" );
-  console.log( "If this does not work (i.e. on windows), try: node tsb" );
-  console.log( "" );
+  console.log( "Options:" );
+  console.log( "  -f <file> .......... load tasks from <file> instead of the default 'task.js'" );
+  console.log( "  -d ................. run the default task" );
 
-  list();
   console.log( "" );
-
-  if( message ) {
-    console.log( "# ---------------------------------------------------------------------" );
-    console.log( "# " + message );
-    console.log( "# ---------------------------------------------------------------------" );
-    console.log( "" );
+  console.log( "# ---------------------------------------------------------------------" );
+  console.log( "" );
+    if( project.name ) {
+    console.log( "Project: " );
+    console.log( "  " + project.name + ( project.description ? ": " + project.description : "" ) );
   }
 
+  console.log( "" );
+  console.log( "Available tasks:" );
+
+  try {
+
+    let allTasksNames = Object.keys( project.tasks );
+  
+    if( allTasksNames.length == 0 ) {
+      console.log( "  - no tasks -" );
+    }
+    else {
+      let length = 0;
+      for( let i = 0; i < allTasksNames.length; i++ ) {
+        let taskName = allTasksNames[ i ];
+        length = length < taskName.length ? taskName.length : length;
+      }
+      for( let i = 0; i < allTasksNames.length; i++ ) {
+        let taskName = allTasksNames[ i ];
+        let task = project.tasks[ taskName ];
+        console.log( "  " + taskName + " " + ".".repeat( length + 6 - taskName.length ) 
+          + " " + (task.description ? task.description : " - no description -" ) );
+      }
+    }
+    console.log( "" );
+    console.log( "Default task: " );
+    console.log( project.defaultTask ? "  " + project.defaultTask : "  - no default task -" );
+  
+  }
+  catch( exception ) {
+    console.log();
+  }
+
+  if( messageText ) {
+    console.log( "" );
+    console.log( "# ---------------------------------------------------------------------" );
+    message( messageText );
+  }
+
+}
+
+/**
+ * Show error or other message
+ * 
+ * @param message 
+ * 
+ */
+function message( message ) {
+
+  console.log( "" );
+  console.log( "# " + message );
+
+}
+
+/**
+ * Log a line of text
+ * 
+ * @param line Line to log
+ * 
+ */
+function log( line ) {
+  console.log( line );
 }
 
 /**
@@ -108,7 +188,7 @@ function usage( message ) {
  * @param command Shell command
  * 
  */
-function exec( command ) {
+function exec( command, onClose ) {
 
   console.log( "Running script: " + command );
 
@@ -125,25 +205,157 @@ function exec( command ) {
   });
 
   proc.on('error', (error) => {
-    console.log( error ? error : "" );
+    console.log( error ? "" + error : "" );
   });
 
   proc.on("close", code => {
-    console.log( "return code: " + code );
+    onClose( code );
   });
 
 }
 
 /**
- * Show available scripts
+ * Parse command line arguments in to an object for easy access
  * 
  */
-function list() {
-  console.log( Object.keys( packageJson.scripts ).length + " scripts found:" );
-  let counter = 1;
-  console.log( "" );
-  for( scriptName in packageJson.scripts ) {
-    console.log( counter++ + ": " + scriptName );
+function parseCommandLine() {
+
+  let commandLine = {
+    tasks: [],
+    runDefaultTask: false
+  };
+
+  let currentParamName = null;
+
+  for( let i = 2; i < process.argv.length; i++ ) {
+    let arg = process.argv[ i ];
+    if( currentParamName == null ) {
+      if( arg == "-f" ) {
+        currentParamName = "taskFile"
+        commandLine.tasks = [];
+      }
+      else if( arg == "-d" ) {
+        commandLine.runDefaultTask = true;
+      }
+      else {
+        commandLine.tasks.push( arg );
+      }
+    }
+    else {
+      commandLine[ currentParamName ] = arg;
+      currentParamName = null;
+    }
   }
+
+  return commandLine;
+
 }
+
+/**
+ * Load the task.js (or alternative file) of task 
+ * 
+ * @return The project object with loaded task configuration or an error message
+ * 
+ */
+function loadTaskFile() {
+
+  let project = {
+    error: false,
+    errorMessage: null,
+    tasks: {}
+  };
+
+  let taskFileName = commandLine.taskFile;
+
+  if( !taskFileName ) {
+    taskFileName = "task.js";
+  }
+  
+  const path = require( 'path' );
+  taskFileName = path.resolve( taskFileName );
+
+  const fs = require( 'fs' );
+
+  if( !fs.existsSync( taskFileName ) ) {
+    project.error = true;
+    project.errorMessage = "Error: Task file '" + taskFileName + "' not found.";
+  }
+  else {
+
+    try {
+
+      let tasksFile = require( taskFileName );
+      tasksFile.setup( project );
+  
+    }
+    catch( error ) {
+      project.error = true;
+      project.errorMessage = "Error in setup of task file '" + commandLine.taskFile + "':\n" + error;
+    }
+
+  }
+
+  return project;
+
+}
+
+
+// Tasks ---------------------------------------
+
+/**
+ * Create a runtime environment for tasks which allows them to use many tsb functionality
+ * 
+ */
+function createRunner() {
+  
+  return {
+    
+    /**
+     * Task: Execute shell command
+     * 
+     * @param command Shell command
+     * 
+     */
+    exec: function( command ) {
+      const { execSync } = require("child_process");
+      try {
+        let output = execSync( command );
+        if( output ) {
+          console.log( "" + output );
+        }
+      }
+      catch( error ) {
+        if( error.status ) {
+          console.log( "Return code: " + error.status );
+        }
+        if( error.message ) {
+          console.log( error.message );
+        }
+        if( error.stdout ) {
+          console.log( "" + error.stdout );
+        }
+        if( error.stderr ) {
+          console.log( "" + error.stderr );
+        }
+      }
+    },
+
+    /**
+     * Task: Call typescript compile tsc
+     * 
+     * @param file Optional file specified (for example: *.tsc)
+     * 
+     */
+    tsc: function( config ) {
+      let file = "";
+      if( config && config.file ) {
+        file = config.file;
+      }
+      this.exec( "tsc " + file );
+    }
+
+  };
+
+}
+
 

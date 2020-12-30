@@ -1,3 +1,5 @@
 #!/usr/bin/env node
 
-console.log( "All tests OK" );
+console.log( "No tests found." );
+
+return -1;

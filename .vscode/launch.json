@@ -2,6 +2,7 @@
   // Use IntelliSense to learn about possible attributes.
   // Hover to view descriptions of existing attributes.
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  // , "args": ["run","build"]
   "version": "0.2.0",
   "configurations": [
     {
@@ -11,8 +12,7 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}/tsb",
-      "args": ["run","1"]
+      "program": "${workspaceFolder}/tsb"
     }
   ]
 }

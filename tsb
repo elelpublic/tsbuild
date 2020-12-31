@@ -1,6 +1,23 @@
 #!/usr/bin/env node
 
-let t0 = Date.now();
+/**
+ * --------------------------------------------------------------------------------------
+ * 
+ * Why is this file here?
+ * 
+ * Answer: tsb is an antlike build system to perform some necessary tasks in thie
+ * project. This file contains the complete executable code for tsb. Only nodejs is
+ * required to run tsb.
+ * 
+ * The tasks to be run in this project are defined in the file: 
+ * 
+ * task.js
+ * 
+ * --------------------------------------------------------------------------------------
+ */
+
+
+ let t0 = Date.now();
 
 console.log( "# ---------------------------------------------------------------------" );
 console.log( "                                         _       _           _ _     _" );
@@ -66,7 +83,7 @@ function call( taskName, alreadyCalled, project, tsb ) {
   else {
 
     // call dependencies first
-    if( task.depends ) {
+    if( task.depends && !commandLine.nodeps ) {
       for( let i = 0; i < task.depends.length; i++ ) {
         let dependencyName = task.depends[ i ];
         call( dependencyName, alreadyCalled, project, tsb );
@@ -110,6 +127,9 @@ function usage( messageText ) {
   console.log( "Options:" );
   console.log( "  -f <file> .......... load tasks from <file> instead of the default 'task.js'" );
   console.log( "  -d ................. run the default task" );
+  console.log( "  -a ................. show all tasks (including internal tasks)" );
+  console.log( "  --nodeps ........... do not run depencies of tasks" );
+  console.log( "  -v ................. verbose, show more information on what is  executed" );
 
   console.log( "" );
   console.log( "# ---------------------------------------------------------------------" );
@@ -138,8 +158,10 @@ function usage( messageText ) {
       for( let i = 0; i < allTasksNames.length; i++ ) {
         let taskName = allTasksNames[ i ];
         let task = project.tasks[ taskName ];
-        console.log( "  " + taskName + " " + ".".repeat( length + 6 - taskName.length ) 
+        if( !task.internal || commandLine.showAllTasks ) {
+          console.log( "  " + taskName + " " + ".".repeat( length + 6 - taskName.length ) 
           + " " + (task.description ? task.description : " - no description -" ) );
+        }
       }
     }
     console.log( "" );
@@ -237,6 +259,15 @@ function parseCommandLine() {
       else if( arg == "-d" ) {
         commandLine.runDefaultTask = true;
       }
+      else if( arg == "-a" ) {
+        commandLine.showAllTasks = true;
+      }
+      else if( arg == "--nodeps" ) {
+        commandLine.nodeps = true;
+      }
+      else if( arg == "-v" ) {
+        commandLine.verbose = true;
+      }
       else {
         commandLine.tasks.push( arg );
       }
@@ -319,6 +350,9 @@ function createRunner() {
     exec: function( command ) {
       const { execSync } = require("child_process");
       try {
+        if( commandLine.verbose ) {
+          console.log( "Shell command: " + command );
+        }
         let output = execSync( command );
         if( output ) {
           console.log( "" + output );
@@ -348,10 +382,16 @@ function createRunner() {
      */
     tsc: function( config ) {
       let file = "";
-      if( config && config.file ) {
-        file = config.file;
+      let targetDir = "";
+      if( config ) {
+        if( config.file ) {
+          file = " " + config.file;
+        }
+        if( config.targetDir ) {
+          targetDir = " -outDir " + config.targetDir;
+        }
       }
-      this.exec( "tsc " + file );
+      this.exec( "tsc" + file + targetDir );
     },
 
     /**
@@ -377,6 +417,27 @@ function createRunner() {
      */
     test: function( config ) {
       this.node( config );
+    },
+
+    /**
+     * Delete directory and all content
+     * 
+     * @param config.dir Directory to delete
+     * 
+     */
+    rmdir: function( config ) {
+      if( !config.dir ) {
+        throw "Error: missing parameter config.dir";
+      }
+      else {
+        const path = require( 'path' );
+        let workdir = path.resolve( "." );
+        let deletedir = path.resolve( config.dir );
+        if( !deletedir.startsWith( workdir ) ) {
+          throw "Error: rmdir is not allowed outside of working directory."
+        }
+        this.exec( "rm -r " + deletedir );
+      }
     }
 
   };

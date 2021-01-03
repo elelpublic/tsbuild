@@ -5,9 +5,9 @@
  * 
  * Why is this file here?
  * 
- * Answer: tsb is an antlike build system to perform some necessary tasks in thie
- * project. This file contains the complete executable code for tsb. Only nodejs is
- * required to run tsb.
+ * Answer: bee build is an antlike build system to perform some necessary tasks in thie
+ * project. This file contains the complete executable code for bee. Only nodejs is
+ * required to run bee.
  * 
  * The tasks to be run in this project are defined in the file: 
  * 
@@ -20,12 +20,12 @@
  let t0 = Date.now();
 
 console.log( "# ---------------------------------------------------------------------" );
-console.log( "                                         _       _           _ _     _" );
-console.log( "                                        | |_ ___| |__  _   _(_) | __| |" );
-console.log( "                                        | __/ __| '_ \\| | | | | |/ _` |" );
-console.log( "                                        | |_\\__ \\ |_) | |_| | | | (_| |" );
-console.log( "                                         \\__|___/_.__/ \\__,_|_|_|\\__,_|" );
-console.log( "                                                          tsbuild 0.2.0" );
+console.log( "                                                       _" );
+console.log( "                                                      | |__   ___  ___" );
+console.log( "                                                      | '_ \\ / _ \\/ _ \\" );
+console.log( "                                                      | |_) |  __/  __/" );
+console.log( "                                                      |_.__/ \\___|\\___|" );
+console.log( "                                                        bee build 0.3.0" );
 console.log( "# ---------------------------------------------------------------------" );
 console.log( "" );
 
@@ -52,13 +52,13 @@ else {
   }
   else {
 
-    let tsb = createRunner();
+    let bee = createRunner();
     let alreadyCalled = {};
   
     for( let i = 0; i < commandLine.tasks.length; i++ ) {
   
       let taskName = commandLine.tasks[ i ];
-      call( taskName, alreadyCalled, project, tsb );
+      call( taskName, alreadyCalled, project, bee );
   
     }
     
@@ -74,7 +74,7 @@ console.log( "" );
 // * * * ----------------------------------------------
 
 
-function call( taskName, alreadyCalled, project, tsb ) {
+function call( taskName, alreadyCalled, project, bee ) {
 
   let task = project.tasks[ taskName ];
   if( !task ) {
@@ -86,7 +86,7 @@ function call( taskName, alreadyCalled, project, tsb ) {
     if( task.depends && !commandLine.nodeps ) {
       for( let i = 0; i < task.depends.length; i++ ) {
         let dependencyName = task.depends[ i ];
-        call( dependencyName, alreadyCalled, project, tsb );
+        call( dependencyName, alreadyCalled, project, bee );
       }
     }
 
@@ -98,7 +98,7 @@ function call( taskName, alreadyCalled, project, tsb ) {
       // call the actual task last
       try {
         log( "Performing task: '" + taskName + "'" );
-        task.code( tsb );
+        task.code( bee );
       }
       catch( error ) {
         message( "Error in task '" + taskName + "':\n" + error );
@@ -120,7 +120,7 @@ function call( taskName, alreadyCalled, project, tsb ) {
 function usage( messageText ) {
 
   console.log( "Usage:" );
-  console.log( "  tsb [options] default | [task [task2 [task3]  ..]]" );
+  console.log( "  bee [options] default | [task [task2 [task3]  ..]]" );
   console.log( "" );
   console.log( "Runs the given tasks or the default task if no task is given." );
   console.log( "" );
@@ -334,7 +334,7 @@ function loadTaskFile() {
 // Tasks ---------------------------------------
 
 /**
- * Create a runtime environment for tasks which allows them to use many tsb functionality
+ * Create a runtime environment for tasks which allows them to use many bee functionality
  * 
  */
 function createRunner() {
@@ -347,29 +347,40 @@ function createRunner() {
      * @param command Shell command
      * 
      */
-    exec: function( command ) {
-      const { execSync } = require("child_process");
-      try {
-        if( commandLine.verbose ) {
-          console.log( "Shell command: " + command );
+    exec: {
+      description: "Execute a shell command.",
+      parameters: [
+        {
+          name: "command",
+          description: "Complete command line to be executed",
+          type: "string",
+          optional: false
         }
-        let output = execSync( command );
-        if( output ) {
-          console.log( "" + output );
+      ],
+      run: function( command ) {
+        const { execSync } = require("child_process");
+        try {
+          if( commandLine.verbose ) {
+            console.log( "Shell command: " + command );
+          }
+          let output = execSync( command );
+          if( output ) {
+            console.log( "" + output );
+          }
         }
-      }
-      catch( error ) {
-        if( error.status ) {
-          console.log( "Return code: " + error.status );
-        }
-        if( error.message ) {
-          console.log( error.message );
-        }
-        if( error.stdout ) {
-          console.log( "" + error.stdout );
-        }
-        if( error.stderr ) {
-          console.log( "" + error.stderr );
+        catch( error ) {
+          if( error.status ) {
+            console.log( "Return code: " + error.status );
+          }
+          if( error.message ) {
+            console.log( error.message );
+          }
+          if( error.stdout ) {
+            console.log( "" + error.stdout );
+          }
+          if( error.stderr ) {
+            console.log( "" + error.stderr );
+          }
         }
       }
     },
@@ -391,7 +402,7 @@ function createRunner() {
           targetDir = " -outDir " + config.targetDir;
         }
       }
-      this.exec( "tsc" + file + targetDir );
+      this.exec.run( "tsc" + file + targetDir );
     },
 
     /**
@@ -405,7 +416,7 @@ function createRunner() {
         usage( "Error: no test script specified" );
       }
       else {
-        this.exec( "node " + config.file );
+        this.exec.run( "node " + config.file );
       }
     },
 
@@ -436,7 +447,7 @@ function createRunner() {
         if( !deletedir.startsWith( workdir ) ) {
           throw "Error: rmdir is not allowed outside of working directory."
         }
-        this.exec( "rm -r " + deletedir );
+        this.exec.run( "rm -r " + deletedir );
       }
     }
 

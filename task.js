@@ -1,6 +1,6 @@
 exports.setup = function( project ) {
 
-  project.name = "tsbuild";
+  project.name = "bee_build";
   project.description = "An antlike builder for nodejs and especially for me.";
   project.defaultTask = "build";
 
@@ -18,12 +18,12 @@ exports.setup = function( project ) {
 
 }
 
-function build( tsb ) {
+function build( bee ) {
   console.log( "Hello build" );
 }
 
-function test( tsb ) {
+function test( bee ) {
   console.log( "Hello test" );
-  tsb.exec( 'echo "Hello shell"' );
+  bee.exec.run( 'echo "Hello shell"' );
 }
 

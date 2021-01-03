@@ -2,23 +2,23 @@
 
 To get started:
 
-* drop the script "tsb" into the project folder
-* run tsbuild
+* drop the script "bee" into the project folder
+* run bee build
 
-## Run tsbuild
+## Run bee build
 
-    ./tsb
+    ./bee
 
-On some systems, it might be necessary to call tsbuild like this:
+On some systems, it might be necessary to call bee build like this:
 
-    node tsb
+    node bee
 
 Then follow the messages on screen.
 
 ## Alias for regular use
 
-    # in ~/.profile add
-    alias tsb="./tsb"
+    # in ~/.profile add this line:
+    alias bee="./bee"
 
 ## Goals
 

@@ -5,13 +5,13 @@
  * 
  * Why is this file here?
  * 
- * Answer: bee build is an antlike build system to perform some necessary tasks in thie
+ * Answer: bee build is an antlike build system to perform some necessary tasks in this
  * project. This file contains the complete executable code for bee. Only nodejs is
  * required to run bee.
  * 
- * The tasks to be run in this project are defined in the file: 
+ * The targets to be achieved in this project are defined in the file: 
  * 
- * task.js
+ * build.js
  * 
  * --------------------------------------------------------------------------------------
  */
@@ -19,46 +19,47 @@
 
  let t0 = Date.now();
 
-console.log( "# ---------------------------------------------------------------------" );
-console.log( "                                                       _" );
-console.log( "                                                      | |__   ___  ___" );
-console.log( "                                                      | '_ \\ / _ \\/ _ \\" );
-console.log( "                                                      | |_) |  __/  __/" );
-console.log( "                                                      |_.__/ \\___|\\___|" );
-console.log( "                                                        bee build 0.3.0" );
-console.log( "# ---------------------------------------------------------------------" );
+console.log( "# ------------------------------------------------------------------------------" );
+console.log( "                                                                _" );
+console.log( "                                                               | |__   ___  ___" );
+console.log( "                                                               | '_ \\ / _ \\/ _ \\" );
+console.log( "                                                               | |_) |  __/  __/" );
+console.log( "                                                               |_.__/ \\___|\\___|" );
+console.log( "                                                                 bee build 0.3.0" );
+console.log( "" );
+console.log( "# ------------------------------------------------------------------------------" );
 console.log( "" );
 
 let commandLine = parseCommandLine();
 
-let project = loadTaskFile();
+let project = loadBuildFile();
 
 if( project.error ) {
   usage( project.errorMessage );
 }
 else {
 
-  if( commandLine.runDefaultTask ) {
-    if( !project.defaultTask ) {
-      usage( "Error: Cannot run default task because no default task is defined.")
+  if( commandLine.runDefaultTarget ) {
+    if( !project.defaultTarget ) {
+      usage( "Error: Cannot run default target because no default target is defined.")
     }
     else {
-      commandLine.tasks.push( project.defaultTask );
+      commandLine.targets.push( project.defaultTarget );
     }
   }
 
-  if( commandLine.tasks.length == 0 ) {
-    usage( "Please define one or more tasks to run or run with option -d" );
+  if( commandLine.targets.length == 0 ) {
+    usage( "Please define one or more targets to run or run with option -d" );
   }
   else {
 
     let bee = createRunner();
     let alreadyCalled = {};
   
-    for( let i = 0; i < commandLine.tasks.length; i++ ) {
+    for( let i = 0; i < commandLine.targets.length; i++ ) {
   
-      let taskName = commandLine.tasks[ i ];
-      call( taskName, alreadyCalled, project, bee );
+      let targetName = commandLine.targets[ i ];
+      call( targetName, alreadyCalled, project, bee );
   
     }
     
@@ -74,34 +75,34 @@ console.log( "" );
 // * * * ----------------------------------------------
 
 
-function call( taskName, alreadyCalled, project, bee ) {
+function call( targetName, alreadyCalled, project, bee ) {
 
-  let task = project.tasks[ taskName ];
-  if( !task ) {
-    throw "Error: task '" + taskName + "' not found.";
+  let target = project.targets[ targetName ];
+  if( !target ) {
+    throw "Error: target '" + targetName + "' not found.";
   }
   else {
 
     // call dependencies first
-    if( task.depends && !commandLine.nodeps ) {
-      for( let i = 0; i < task.depends.length; i++ ) {
-        let dependencyName = task.depends[ i ];
+    if( target.depends && !commandLine.nodeps ) {
+      for( let i = 0; i < target.depends.length; i++ ) {
+        let dependencyName = target.depends[ i ];
         call( dependencyName, alreadyCalled, project, bee );
       }
     }
 
-    if( !alreadyCalled[ taskName ] ) {
+    if( !alreadyCalled[ targetName ] ) {
 
-      alreadyCalled[ taskName ] = true;
-      let task = project.tasks[ taskName ];
+      alreadyCalled[ targetName ] = true;
+      let target = project.targets[ targetName ];
 
-      // call the actual task last
+      // call the actual target last
       try {
-        log( "Performing task: '" + taskName + "'" );
-        task.code( bee );
+        log( "Performing target: '" + targetName + "'" );
+        target.code( bee );
       }
       catch( error ) {
-        message( "Error in task '" + taskName + "':\n" + error );
+        message( "Error in target '" + targetName + "':\n" + error );
       }
 
     }
@@ -120,19 +121,20 @@ function call( taskName, alreadyCalled, project, bee ) {
 function usage( messageText ) {
 
   console.log( "Usage:" );
-  console.log( "  bee [options] default | [task [task2 [task3]  ..]]" );
+  console.log( "  bee [options] default | [target [target2 [target3]  ..]]" );
   console.log( "" );
-  console.log( "Runs the given tasks or the default task if no task is given." );
+  console.log( "Runs the given targets or the default target if no target is given." );
   console.log( "" );
   console.log( "Options:" );
-  console.log( "  -f <file> .......... load tasks from <file> instead of the default 'task.js'" );
-  console.log( "  -d ................. run the default task" );
-  console.log( "  -a ................. show all tasks (including internal tasks)" );
-  console.log( "  --nodeps ........... do not run depencies of tasks" );
+  console.log( "  -f <file> .......... load targets from <file> instead of the default 'build.js'" );
+  console.log( "  -d ................. run the default target" );
+  console.log( "  -a ................. show all targets (including internal targets)" );
+  console.log( "  --nodeps ........... do not run depencies of targets" );
   console.log( "  -v ................. verbose, show more information on what is  executed" );
+  console.log( "  -t ................. list all tasks" );
 
   console.log( "" );
-  console.log( "# ---------------------------------------------------------------------" );
+  console.log( "# ------------------------------------------------------------------------------" );
   console.log( "" );
     if( project.name ) {
     console.log( "Project: " );
@@ -140,33 +142,33 @@ function usage( messageText ) {
   }
 
   console.log( "" );
-  console.log( "Available tasks:" );
+  console.log( "Available targets:" );
 
   try {
 
-    let allTasksNames = Object.keys( project.tasks );
+    let allTargetNames = Object.keys( project.targets );
   
-    if( allTasksNames.length == 0 ) {
-      console.log( "  - no tasks -" );
+    if( allTargetNames.length == 0 ) {
+      console.log( "  - no targets -" );
     }
     else {
       let length = 0;
-      for( let i = 0; i < allTasksNames.length; i++ ) {
-        let taskName = allTasksNames[ i ];
-        length = length < taskName.length ? taskName.length : length;
+      for( let i = 0; i < allTargetNames.length; i++ ) {
+        let targetName = allTargetNames[ i ];
+        length = length < targetName.length ? targetName.length : length;
       }
-      for( let i = 0; i < allTasksNames.length; i++ ) {
-        let taskName = allTasksNames[ i ];
-        let task = project.tasks[ taskName ];
-        if( !task.internal || commandLine.showAllTasks ) {
-          console.log( "  " + taskName + " " + ".".repeat( length + 6 - taskName.length ) 
-          + " " + (task.description ? task.description : " - no description -" ) );
+      for( let i = 0; i < allTargetNames.length; i++ ) {
+        let targetName = allTargetNames[ i ];
+        let target = project.targets[ targetName ];
+        if( !target.internal || commandLine.showAlltargets ) {
+          console.log( "  " + targetName + " " + ".".repeat( length + 6 - targetName.length ) 
+          + " " + (target.description ? target.description : " - no description -" ) );
         }
       }
     }
     console.log( "" );
-    console.log( "Default task: " );
-    console.log( project.defaultTask ? "  " + project.defaultTask : "  - no default task -" );
+    console.log( "Default target: " );
+    console.log( project.defaultTarget ? "  " + project.defaultTarget : "  - no default target -" );
   
   }
   catch( exception ) {
@@ -175,7 +177,7 @@ function usage( messageText ) {
 
   if( messageText ) {
     console.log( "" );
-    console.log( "# ---------------------------------------------------------------------" );
+    console.log( "# ------------------------------------------------------------------------------" );
     message( messageText );
   }
 
@@ -243,8 +245,8 @@ function exec( command, onClose ) {
 function parseCommandLine() {
 
   let commandLine = {
-    tasks: [],
-    runDefaultTask: false
+    targets: [],
+    runDefaultTarget: false
   };
 
   let currentParamName = null;
@@ -253,14 +255,14 @@ function parseCommandLine() {
     let arg = process.argv[ i ];
     if( currentParamName == null ) {
       if( arg == "-f" ) {
-        currentParamName = "taskFile"
-        commandLine.tasks = [];
+        currentParamName = "targetFile"
+        commandLine.targets = [];
       }
       else if( arg == "-d" ) {
-        commandLine.runDefaultTask = true;
+        commandLine.runDefaultTarget = true;
       }
       else if( arg == "-a" ) {
-        commandLine.showAllTasks = true;
+        commandLine.showAlltargets = true;
       }
       else if( arg == "--nodeps" ) {
         commandLine.nodeps = true;
@@ -269,7 +271,7 @@ function parseCommandLine() {
         commandLine.verbose = true;
       }
       else {
-        commandLine.tasks.push( arg );
+        commandLine.targets.push( arg );
       }
     }
     else {
@@ -283,45 +285,45 @@ function parseCommandLine() {
 }
 
 /**
- * Load the task.js (or alternative file) of task 
+ * Load the build.js (or alternative file) of target 
  * 
- * @return The project object with loaded task configuration or an error message
+ * @return The project object with loaded target configuration or an error message
  * 
  */
-function loadTaskFile() {
+function loadBuildFile() {
 
   let project = {
     error: false,
     errorMessage: null,
-    tasks: {}
+    targets: {}
   };
 
-  let taskFileName = commandLine.taskFile;
+  let targetFileName = commandLine.targetFile;
 
-  if( !taskFileName ) {
-    taskFileName = "task.js";
+  if( !targetFileName ) {
+    targetFileName = "build.js";
   }
   
   const path = require( 'path' );
-  taskFileName = path.resolve( taskFileName );
+  targetFileName = path.resolve( targetFileName );
 
   const fs = require( 'fs' );
 
-  if( !fs.existsSync( taskFileName ) ) {
+  if( !fs.existsSync( targetFileName ) ) {
     project.error = true;
-    project.errorMessage = "Error: Task file '" + taskFileName + "' not found.";
+    project.errorMessage = "Error: target file '" + targetFileName + "' not found.";
   }
   else {
 
     try {
 
-      let tasksFile = require( taskFileName );
-      tasksFile.setup( project );
+      let targetsFile = require( targetFileName );
+      targetsFile.setup( project );
   
     }
     catch( error ) {
       project.error = true;
-      project.errorMessage = "Error in setup of task file '" + commandLine.taskFile + "':\n" + error;
+      project.errorMessage = "Error in setup of target file '" + commandLine.targetFile + "':\n" + error;
     }
 
   }
@@ -331,10 +333,10 @@ function loadTaskFile() {
 }
 
 
-// Tasks ---------------------------------------
+// Taks ---------------------------------------
 
 /**
- * Create a runtime environment for tasks which allows them to use many bee functionality
+ * Create a runtime environment for targets which allows them to use many bee functionality
  * 
  */
 function createRunner() {

@@ -2,15 +2,15 @@ exports.setup = function( project ) {
 
   project.name = "bee_build";
   project.description = "An antlike builder for nodejs and especially for me.";
-  project.defaultTask = "build";
+  project.defaultTarget = "build";
 
-  project.tasks["build"] = {
+  project.targets[ "build" ] = {
     description: "Build the project, create distribution files.",
     depends: [ "test" ],
     code: build
   };
 
-  project.tasks["test"] = {
+  project.targets[ "test" ] = {
     description: "Run unit tests",
     depends: [],
     code: test

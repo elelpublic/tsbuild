@@ -12,7 +12,8 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}/tsb"
+      "program": "${workspaceFolder}/bee"
+      , "args": ["-t", "exec"]
     }
   ]
 }

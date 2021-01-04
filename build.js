@@ -1,6 +1,6 @@
 exports.setup = function( project ) {
 
-  project.name = "bee_build";
+  project.name = "bee";
   project.description = "An antlike builder for nodejs and especially for me.";
   project.defaultTarget = "build";
 

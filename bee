@@ -5,7 +5,7 @@
  * 
  * Why is this file here?
  * 
- * Answer: bee build is an antlike build system to perform some necessary tasks in this
+ * Answer: bee is an antlike build system to perform some necessary tasks in this
  * project. This file contains the complete executable code for bee. Only nodejs is
  * required to run bee.
  * 
@@ -25,7 +25,7 @@ console.log( "                                                               | |
 console.log( "                                                               | '_ \\ / _ \\/ _ \\" );
 console.log( "                                                               | |_) |  __/  __/" );
 console.log( "                                                               |_.__/ \\___|\\___|" );
-console.log( "                                                                 bee build 0.3.0" );
+console.log( "                                                                       bee 0.3.0" );
 console.log( "" );
 console.log( "# ------------------------------------------------------------------------------" );
 console.log( "" );
@@ -39,30 +39,37 @@ if( project.error ) {
 }
 else {
 
-  if( commandLine.runDefaultTarget ) {
-    if( !project.defaultTarget ) {
-      usage( "Error: Cannot run default target because no default target is defined.")
-    }
-    else {
-      commandLine.targets.push( project.defaultTarget );
-    }
-  }
-
-  if( commandLine.targets.length == 0 ) {
-    usage( "Please define one or more targets to run or run with option -d" );
+  if( commandLine.listTasks ) {
+    listTasks( commandLine.describeTask );
   }
   else {
 
-    let bee = createRunner();
-    let alreadyCalled = {};
-  
-    for( let i = 0; i < commandLine.targets.length; i++ ) {
-  
-      let targetName = commandLine.targets[ i ];
-      call( targetName, alreadyCalled, project, bee );
-  
+    if( commandLine.runDefaultTarget ) {
+      if( !project.defaultTarget ) {
+        usage( "Error: Cannot run default target because no default target is defined.")
+      }
+      else {
+        commandLine.targets.push( project.defaultTarget );
+      }
     }
+  
+    if( commandLine.targets.length == 0 ) {
+      usage( "Please define one or more targets to run or run with option -d" );
+    }
+    else {
+  
+      let bee = createRunner();
+      let alreadyCalled = {};
     
+      for( let i = 0; i < commandLine.targets.length; i++ ) {
+    
+        let targetName = commandLine.targets[ i ];
+        call( targetName, alreadyCalled, project, bee );
+    
+      }
+      
+    }
+  
   }
 
 }
@@ -207,6 +214,63 @@ function log( line ) {
 }
 
 /**
+ * List all tasks
+ * 
+ * @param Optional: if given describe this task in detail
+ * 
+ */
+function listTasks( taskName ) {
+
+  let runner = createRunner();
+  let taskNames = Object.keys( runner );
+
+  if( taskName && taskNames.indexOf( taskName ) != -1 ) {
+    // describe a task in detail
+    let task = runner[ taskName ];
+    console.log( "# Task: " + taskName );
+    console.log( "" );
+    console.log( "  Description: " + (task.description ? task.description : " - no description - " ) );
+    if( !task.parameters ) {
+      console.log( "  - no Parameters -" );
+    }
+    else {
+      console.log( "" );
+      console.log( "# Parameters:" );
+      for( let i = 0; i < task.parameters.length; i++ ) {
+        let parameter = task.parameters[ i ];
+        console.log( "" );
+        console.log( "  " + ( parameter.name ? parameter.name : " - " ) );
+        console.log( "    Description: ........ " + ( parameter.description ? parameter.description : " - no description -" ) );
+        console.log( "    Type: ............... " + ( parameter.type ? parameter.type : " - " ) );
+        console.log( "    Optional: ........... " + ( parameter.optional ? "true" : "false" ) );
+    }
+    }
+  }
+  else {
+    console.log( "# Available tasks:" );
+    console.log( "" );
+    let length = 0;
+    for( let i = 0; i < taskNames.length; i++ ) {
+      let taskName = taskNames[ i ];
+      if( taskName.length > length ) {
+        length = taskName.length;
+      }
+    }
+    for( let i = 0; i < taskNames.length; i++ ) {
+      let taskName = taskNames[ i ];
+      let task = runner[ taskName ];
+      console.log( "  " + taskName + " " + ".".repeat( length + 6 - taskName.length ) 
+        + " " + (task.description ? task.description : " - no description -" ) );
+    }
+    console.log( "" );
+    console.log( "To show more information about a task, call:" );
+    console.log( "" );
+    console.log( "bee -t <taskname>" );  
+  }
+
+}
+
+/**
  * Execute shell command
  * 
  * @param command Shell command
@@ -269,6 +333,10 @@ function parseCommandLine() {
       }
       else if( arg == "-v" ) {
         commandLine.verbose = true;
+      }
+      else if( arg == "-t" ) {
+        commandLine.listTasks = true;
+        currentParamName = "describeTask"
       }
       else {
         commandLine.targets.push( arg );
@@ -393,18 +461,35 @@ function createRunner() {
      * @param config.file Optional file specified (for example: *.tsc)
      * 
      */
-    tsc: function( config ) {
-      let file = "";
-      let targetDir = "";
-      if( config ) {
-        if( config.file ) {
-          file = " " + config.file;
+    tsc: {
+      description: "Compile typescript source file.",
+      parameters: [
+        {
+          name: "file",
+          description: "File or wildcard of files to compile",
+          type: "string",
+          optional: true
         }
-        if( config.targetDir ) {
-          targetDir = " -outDir " + config.targetDir;
+        , {
+          name: "targetDir",
+          description: "Target directory for compiles js files",
+          type: "string",
+          optional: true
         }
+      ],
+      run: function( config ) {
+        let file = "";
+        let targetDir = "";
+        if( config ) {
+          if( config.file ) {
+            file = " " + config.file;
+          }
+          if( config.targetDir ) {
+            targetDir = " -outDir " + config.targetDir;
+          }
+        }
+        this.exec.run( "tsc" + file + targetDir );
       }
-      this.exec.run( "tsc" + file + targetDir );
     },
 
     /**

@@ -13,4 +13,4 @@ console.log( " \\__,_|\\__,_|_| |_|\\__, |_.__/ \\___|\\___|\\__|_|\\___|" );
 console.log( "                   |___/" );
 console.log( "                                         dungbeetle 0.0.1 ");
 console.log( "" );
-console.log( "- dungbeetle is a little helper to bee build - " );
+console.log( "- dungbeetle is a little helper to bee - " );

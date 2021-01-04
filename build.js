@@ -24,6 +24,7 @@ function build( bee ) {
 
 function test( bee ) {
   console.log( "Hello test" );
-  bee.exec.run( 'echo "Hello shell"' );
+  bee.exec.run( { command: 'echo "Hello shell"' } );
+  //bee.exec.run( 'echo "Hello shell"' );
 }
 

@@ -17,7 +17,7 @@
  */
 
 
- let t0 = Date.now();
+let t0 = Date.now();
 
 console.log( "# ------------------------------------------------------------------------------" );
 console.log( "                                                                _" );
@@ -74,6 +74,8 @@ else {
 
 }
 
+console.log( "" );
+console.log( "# ------------------------------------------------------------------------------" );
 console.log( "" );
 console.log( "Finished after " + (Date.now() - t0) + " millis." );
 console.log( "" );
@@ -228,22 +230,22 @@ function listTasks( taskName ) {
     // describe a task in detail
     let task = runner[ taskName ];
     console.log( "# Task: " + taskName );
-    console.log( "" );
+    //console.log( "" );
     console.log( "  Description: " + (task.description ? task.description : " - no description - " ) );
     if( !task.parameters ) {
       console.log( "  - no Parameters -" );
     }
     else {
-      console.log( "" );
-      console.log( "# Parameters:" );
+      console.log( "  Parameters:" );
       for( let i = 0; i < task.parameters.length; i++ ) {
         let parameter = task.parameters[ i ];
-        console.log( "" );
-        console.log( "  " + ( parameter.name ? parameter.name : " - " ) );
-        console.log( "    Description: ........ " + ( parameter.description ? parameter.description : " - no description -" ) );
-        console.log( "    Type: ............... " + ( parameter.type ? parameter.type : " - " ) );
-        console.log( "    Optional: ........... " + ( parameter.optional ? "true" : "false" ) );
-    }
+        let line = '    "' + parameter.name + '" (' + parameter.type + ( parameter.optional ? ' optional' : '' ) + ')' + ' ...';
+        let dots = 40 - line.length;
+        if( dots < 0 ) {
+          dots = 0;
+        }
+        console.log( line + '.'.repeat( dots ) + ' '  + parameter.description );
+      }
     }
   }
   else {
@@ -427,7 +429,14 @@ function createRunner() {
           optional: false
         }
       ],
-      run: function( command ) {
+      run: function( input ) {
+        let command;
+        if( typeof input === 'string' || input instanceof String ) {
+          command = "" + input;
+        }
+        else {
+          command = input.command;
+        }
         const { execSync } = require("child_process");
         try {
           if( commandLine.verbose ) {
@@ -498,12 +507,23 @@ function createRunner() {
      * @param config.file Optional file specified (for example: *.tsc)
      * 
      */
-    node: function( config ) {
-      if( !config || !config.file ) {
-        usage( "Error: no test script specified" );
-      }
-      else {
-        this.exec.run( "node " + config.file );
+    node: {
+      description: "Call a node script.",
+      parameters: [
+        {
+          name: "file",
+          description: "File name of node script",
+          type: "string",
+          optional: false
+        }
+      ],
+      run: function( config ) {
+        if( !config || !config.file ) {
+          usage( "Error: no test script specified" );
+        }
+        else {
+          this.exec.run( "node " + config.file );
+        }
       }
     },
 
@@ -513,8 +533,19 @@ function createRunner() {
      * @param config.file File containg unit tests
      * 
      */
-    test: function( config ) {
-      this.node( config );
+    test: {
+      description: "Perform unit tests.",
+      parameters: [
+        {
+          name: "file",
+          description: "File name of unit test script",
+          type: "string",
+          optional: false
+        }
+      ],
+      run: function( config ) {
+        this.node( config );
+      }
     },
 
     /**
@@ -523,18 +554,29 @@ function createRunner() {
      * @param config.dir Directory to delete
      * 
      */
-    rmdir: function( config ) {
-      if( !config.dir ) {
-        throw "Error: missing parameter config.dir";
-      }
-      else {
-        const path = require( 'path' );
-        let workdir = path.resolve( "." );
-        let deletedir = path.resolve( config.dir );
-        if( !deletedir.startsWith( workdir ) ) {
-          throw "Error: rmdir is not allowed outside of working directory."
+    rmdir: {
+      description: "Delete a directory and all its content.",
+      parameters: [
+        {
+          name: "dir",
+          description: "Name of a directory below the project directory.",
+          type: "string",
+          optional: false
         }
-        this.exec.run( "rm -r " + deletedir );
+      ],
+      run: function( config ) {
+        if( !config.dir ) {
+          throw "Error: missing parameter config.dir";
+        }
+        else {
+          const path = require( 'path' );
+          let workdir = path.resolve( "." );
+          let deletedir = path.resolve( config.dir );
+          if( !deletedir.startsWith( workdir ) ) {
+            throw "Error: rmdir is not allowed outside of working directory."
+          }
+          this.exec.run( "rm -r " + deletedir );
+        }
       }
     }
 

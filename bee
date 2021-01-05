@@ -25,7 +25,7 @@ console.log( "                                                               | |
 console.log( "                                                               | '_ \\ / _ \\/ _ \\" );
 console.log( "                                                               | |_) |  __/  __/" );
 console.log( "                                                               |_.__/ \\___|\\___|" );
-console.log( "                                                                       bee 0.3.0" );
+console.log( " * to build and to serve *                                             bee 0.3.0" );
 console.log( "" );
 console.log( "# ------------------------------------------------------------------------------" );
 console.log( "" );
@@ -411,8 +411,8 @@ function loadBuildFile() {
  */
 function createRunner() {
   
-  return {
-    
+   let bee = {
+
     /**
      * Task: Execute shell command
      * 
@@ -497,7 +497,7 @@ function createRunner() {
             targetDir = " -outDir " + config.targetDir;
           }
         }
-        this.exec.run( "tsc" + file + targetDir );
+        bee.exec.run( "tsc" + file + targetDir );
       }
     },
 
@@ -522,7 +522,7 @@ function createRunner() {
           usage( "Error: no test script specified" );
         }
         else {
-          this.exec.run( "node " + config.file );
+          bee.exec.run( "node " + config.file );
         }
       }
     },
@@ -544,7 +544,7 @@ function createRunner() {
         }
       ],
       run: function( config ) {
-        this.node( config );
+        bee.node.run( config );
       }
     },
 
@@ -575,12 +575,14 @@ function createRunner() {
           if( !deletedir.startsWith( workdir ) ) {
             throw "Error: rmdir is not allowed outside of working directory."
           }
-          this.exec.run( "rm -r " + deletedir );
+          bee.exec.run( "rm -r " + deletedir );
         }
       }
     }
 
   };
+
+  return bee;
 
 }
 

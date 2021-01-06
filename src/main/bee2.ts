@@ -30,7 +30,33 @@ console.log( "" );
 console.log( "# ------------------------------------------------------------------------------" );
 console.log( "" );
 
-let commandLine = parseCommandLine();
+interface Process {
+  argv: string[]
+}
+
+class CommandLine {
+  targets = [];
+  runDefaultTarget = false;
+  showAlltargets = false;
+  nodeps = false;
+  verbose = false;
+  listTasks = false;
+  targetFile: string;
+  describeTask: string;
+};
+
+class Project {
+  name: string;
+  description: string;
+  error = false;
+  errorMessage: string;
+  targets = [];
+  defaultTarget: string;
+};
+
+// ------------------------------------------------------------
+
+let commandLine = parseCommandLine( process );
 
 let project = loadBuildFile();
 
@@ -308,12 +334,9 @@ function exec( command, onClose ) {
  * Parse command line arguments in to an object for easy access
  * 
  */
-function parseCommandLine() {
+function parseCommandLine( process: Process ) : CommandLine {
 
-  let commandLine = {
-    targets: [],
-    runDefaultTarget: false
-  };
+  let commandLine = new CommandLine();
 
   let currentParamName = null;
 
@@ -360,13 +383,9 @@ function parseCommandLine() {
  * @return The project object with loaded target configuration or an error message
  * 
  */
-function loadBuildFile() {
+function loadBuildFile() : Project {
 
-  let project = {
-    error: false,
-    errorMessage: null,
-    targets: {}
-  };
+  let project = new Project();
 
   let targetFileName = commandLine.targetFile;
 
@@ -393,7 +412,7 @@ function loadBuildFile() {
     }
     catch( error ) {
       project.error = true;
-      project.errorMessage = "Error in setup of target file '" + targetFileName + "':\n";
+      project.errorMessage = "Error in setup of target file '" + commandLine.targetFile + "':\n";
       if( error && error.stack ) {
         project.errorMessage += error.stack;
       }

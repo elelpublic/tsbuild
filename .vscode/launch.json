@@ -8,12 +8,22 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug tsb",
+      "name": "Debug bee",
       "skipFiles": [
         "<node_internals>/**"
       ],
       "program": "${workspaceFolder}/bee"
-      , "args": ["-t", "exec"]
+      , "args": [""]
+    }
+    , {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug bee2 (development version of bee in typescript)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/bee2.js"
+      , "args": [ "-d" ]
     }
   ]
 }

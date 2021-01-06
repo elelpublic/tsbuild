@@ -12,12 +12,11 @@ exports.setup = function( project ) {
     }
   };
 
-  project.targets[ "build2" ] = {
-    description: "Build bee2.js which is the temporary typescript based version of bee.",
-    depends: [ "test" ],
+  project.targets[ "install" ] = {
+    description: "Install new version of bee in this project.",
+    depends: [ "build" ],
     code: function( bee ) {
-      bee.tsc.run( { file: "src/main/*.ts", targetDir: "target" } );
-      bee.exec.run( { command: "cp target/bee2.js ." } );
+      bee.exec.run( { command: "cp target/bee.js bee" } );
     }
   };
 
@@ -34,7 +33,6 @@ exports.setup = function( project ) {
     depends: [],
     code: function( bee ) {
       bee.rmdir.run({ dir: "target" });
-      bee.exec.run({ command: "rm bee2.js" });
     }
   };
 

@@ -25,7 +25,7 @@ console.log( "                                                               | |
 console.log( "                                                               | '_ \\ / _ \\/ _ \\" );
 console.log( "                                                               | |_) |  __/  __/" );
 console.log( "                                                               |_.__/ \\___|\\___|" );
-console.log( " * to build and to serve *                                             bee 0.3.0" );
+console.log( " * to build and to serve *                                             bee 0.4.0" );
 console.log( "" );
 console.log( "# ------------------------------------------------------------------------------" );
 console.log( "" );

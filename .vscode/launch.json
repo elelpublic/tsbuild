@@ -13,17 +13,7 @@
         "<node_internals>/**"
       ],
       "program": "${workspaceFolder}/bee"
-      , "args": [""]
-    }
-    , {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug bee2 (development version of bee in typescript)",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/bee2.js"
-      , "args": [ "-d" ]
+      , "args": [ "test1" ]
     }
   ]
 }

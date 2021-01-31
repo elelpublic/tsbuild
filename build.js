@@ -8,7 +8,7 @@ exports.setup = function( project ) {
     description: "Build the project, create distribution files.",
     depends: [ "test" ],
     code: function( bee ) {
-      bee.tsc.run( { file: "src/main/*.ts", targetDir: "target" } );
+      bee.tsc.run( { file: "src/*.ts", targetDir: "target" } );
     }
   };
 
@@ -16,15 +16,36 @@ exports.setup = function( project ) {
     description: "Install new version of bee in this project.",
     depends: [ "build" ],
     code: function( bee ) {
-      bee.exec.run( { command: "cp target/bee.js bee" } );
+      bee.exec.run( { command: "echo 'Will install bee.ts as bee2.'" } );
+      bee.exec.run( { command: "cp target/bee.js bee2" } );
+      bee.exec.run( { command: "echo 'Installation finished.'" } );
     }
   };
 
   project.targets[ "test" ] = {
     description: "Run unit tests",
-    depends: [],
+    depends: [ "compileTests" ],
     code: function( bee ) {
-      bee.exec.run( "src/tests/alltests.js" );
+      //bee.exec.run( "src/tests/alltests.js" );
+      bee.test.run({ dir: "target/tests" });
+    }
+  };
+
+  project.targets[ "test1" ] = {
+    description: "Run unit tests",
+    depends: [ "compileTests" ],
+    code: function( bee ) {
+      //bee.exec.run( "src/tests/alltests.js" );
+      bee.test.run({ file: "target/tests/sampletest1.js" });
+    }
+  };
+
+  project.targets[ "compileTests" ] = {
+    description: "Run unit tests",
+    depends: [],
+    internal: true,
+    code: function( bee ) {
+      bee.tsc.run({ file: "src/tests/*.ts", targetDir: "target" });
     }
   };
 
@@ -33,6 +54,14 @@ exports.setup = function( project ) {
     depends: [],
     code: function( bee ) {
       bee.rmdir.run({ dir: "target" });
+    }
+  };
+
+  project.targets[ "play" ] = {
+    description: "Play around with new features.",
+    depends: [],
+    code: function( bee ) {
+      bee.call.run({ file: "target/tests/sampletest1.js" });
     }
   };
 

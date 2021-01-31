@@ -12,8 +12,8 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}/bee"
-      , "args": [ "test1" ]
+      "program": "${workspaceFolder}/bee2"
+      , "args": [ "-h" ]
     }
   ]
 }

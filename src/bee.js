@@ -1,5 +1,53 @@
 #!/usr/bin/env node
 /**
+ * --------------------------------------------------------------------------------------
+ *
+ * Why is this file here?
+ *
+ * Answer: bee is an antlike build system to perform some necessary tasks in this
+ * project. This file contains the complete executable code for bee. Only nodejs is
+ * required to run bee.
+ *
+ * The targets to be achieved in this project are defined in the file:
+ *
+ * build.js
+ *
+ * --------------------------------------------------------------------------------------
+ */
+var CommandLine = /** @class */ (function () {
+    function CommandLine() {
+        this.isEmpty = true;
+        this.targets = [];
+        this.runDefaultTarget = false;
+        this.showProjectInformation = false;
+        this.showDependencies = false;
+        this.showInternalTargets = false;
+        this.nodeps = false;
+        this.verbose = false;
+        this.listTasks = false;
+        this.showHelp = false;
+    }
+    return CommandLine;
+}());
+/**
+ * A target defines a step in the project build process
+ */
+var Target = /** @class */ (function () {
+    function Target() {
+    }
+    return Target;
+}());
+/**
+ * The description of the current software project built with bee
+ */
+var Project = /** @class */ (function () {
+    function Project() {
+        this.error = false;
+        this.targets = new Array();
+    }
+    return Project;
+}());
+/**
  * A parameter defines one unit of input to a task
  */
 var Parameter = /** @class */ (function () {
@@ -62,9 +110,7 @@ var bee = {
     }),
     tsc: new Task("Compile typescript source file.", [
         new Parameter("file", "File or wildcard of files to compile", "string", true),
-        new Parameter("files", "List of files to compile", "string", true),
-        new Parameter("outDir", "Target directory for compiles js files", "string", true),
-        new Parameter("outFile", "Target javascript file", "string", true)
+        new Parameter("outDir", "Target directory for compiles js files", "string", true)
     ], function (config) {
         var file = "";
         var outDir = "";
@@ -72,16 +118,8 @@ var bee = {
             if (config.file) {
                 file = " " + config.file;
             }
-            if (config.files) {
-                for (var i = 0; i < config.files.length; i++) {
-                    file += " " + config.files[i];
-                }
-            }
             if (config.outDir) {
                 outDir = " -outDir " + config.outDir;
-            }
-            else if (config.outFile) {
-                outDir = " -outFile " + config.outFile;
             }
         }
         bee.exec.run("tsc" + file + outDir);
@@ -118,54 +156,6 @@ var bee = {
         }
     })
 };
-/**
- * --------------------------------------------------------------------------------------
- *
- * Why is this file here?
- *
- * Answer: bee is an antlike build system to perform some necessary tasks in this
- * project. This file contains the complete executable code for bee. Only nodejs is
- * required to run bee.
- *
- * The targets to be achieved in this project are defined in the file:
- *
- * build.js
- *
- * --------------------------------------------------------------------------------------
- */
-var CommandLine = /** @class */ (function () {
-    function CommandLine() {
-        this.isEmpty = true;
-        this.targets = [];
-        this.runDefaultTarget = false;
-        this.showProjectInformation = false;
-        this.showDependencies = false;
-        this.showInternalTargets = false;
-        this.nodeps = false;
-        this.verbose = false;
-        this.listTasks = false;
-        this.showHelp = false;
-    }
-    return CommandLine;
-}());
-/**
- * A target defines a step in the project build process
- */
-var Target = /** @class */ (function () {
-    function Target() {
-    }
-    return Target;
-}());
-/**
- * The description of the current software project built with bee
- */
-var Project = /** @class */ (function () {
-    function Project() {
-        this.error = false;
-        this.targets = new Array();
-    }
-    return Project;
-}());
 // -------------------------------------------------------------------
 // command line execution
 var t0 = Date.now();
@@ -215,7 +205,7 @@ else {
                     var targetName = commandLine.targets[i];
                     runTarget(targetName, alreadyCalled, project);
                     if (project.error) {
-                        console.log(project.errorMessage);
+                        project.errorMessage;
                     }
                 }
             }

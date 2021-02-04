@@ -8,7 +8,8 @@ exports.setup = function( project ) {
     description: "Build the project, create distribution files.",
     depends: [ "test" ],
     code: function( bee ) {
-      bee.tsc.run( { file: "src/*.ts", targetDir: "target" } );
+      bee.tsc.run({ outFile: "target/bee.js", files: [ "src/main/tasks.ts", "src/main/bee.ts" ] });
+//      bee.tsc.run( { file: "src/*.ts", outDir: "target" } );
     }
   };
 
@@ -31,21 +32,12 @@ exports.setup = function( project ) {
     }
   };
 
-  project.targets[ "test1" ] = {
-    description: "Run unit tests",
-    depends: [ "compileTests" ],
-    code: function( bee ) {
-      //bee.exec.run( "src/tests/alltests.js" );
-      bee.test.run({ file: "target/tests/sampletest1.js" });
-    }
-  };
-
   project.targets[ "compileTests" ] = {
     description: "Run unit tests",
     depends: [],
     internal: true,
     code: function( bee ) {
-      bee.tsc.run({ file: "src/tests/*.ts", targetDir: "target" });
+      bee.tsc.run({ file: "src/tests/*.ts", outDir: "target" });
     }
   };
 
@@ -61,7 +53,8 @@ exports.setup = function( project ) {
     description: "Play around with new features.",
     depends: [],
     code: function( bee ) {
-      bee.call.run({ file: "target/tests/sampletest1.js" });
+      console.log( "play" );
+      bee.tsc.run({ outFile: "target/main.js", files: [ "src/person.ts", "src/main.ts" ] });
     }
   };
 

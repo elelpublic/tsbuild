@@ -15,16 +15,42 @@ class Parameter {
 }
 
 /**
+ * A task can return ok, warning or error along with some text message
+ */
+class TaskResult {
+  error = false;
+  warning = false;
+  ok: () => boolean = function() {
+    return !this.error;
+  };
+  message: string;
+  constructor( error: boolean, warning: boolean, message: string ) {
+    this.error = error;
+    this.warning = warning;
+    this.message = message;
+  }
+  static OK = function() { return new TaskResult( false, false, null ) };
+  static Message( message: string ) { return new TaskResult( false, false, message ) };  
+  static Warning( message: string ) { return new TaskResult( false, true, message ) };  
+  static Error( message: string ) { return new TaskResult( true, false, message ) };  
+}
+
+/**
  * A task is one operation which bee can perform
  */
 class Task {
   description: string;
   parameters: Array<Parameter>;
-  run: Function;
+  
+  //run: Function;
+
+  run: ( input ) => TaskResult;
+  
   // run: function( config ) {
   //   bee.node.run( config );
   // }
-  constructor( description: string, parameters: Array<Parameter>, run: Function ) {
+  
+  constructor( description: string, parameters: Array<Parameter>, run: ( input ) => TaskResult ) {
     this.description = description;
     this.parameters = parameters;
     this.run = run;
@@ -69,6 +95,7 @@ let bee = {
           console.log( "" + error.stderr );
         }
       }
+      return TaskResult.OK();
     }
 
   ),
@@ -101,6 +128,7 @@ let bee = {
         }
       }
       bee.exec.run( "tsc" + file + outDir );
+      return TaskResult.OK();
     }
   ),
   
@@ -116,6 +144,7 @@ let bee = {
       else {
         bee.exec.run( "node " + config.file );
       }
+      return TaskResult.OK();
     }
   ),
   
@@ -126,6 +155,7 @@ let bee = {
     ],
     function( config ) {
       bee.node.run( config );
+      return TaskResult.OK();
     }
   ),
   
@@ -147,6 +177,7 @@ let bee = {
         }
         bee.exec.run( "rm -r " + deletedir );
       }
+      return TaskResult.OK();
     }
   )
   

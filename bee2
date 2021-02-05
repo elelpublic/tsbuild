@@ -13,6 +13,29 @@ var Parameter = /** @class */ (function () {
     return Parameter;
 }());
 /**
+ * A task can return ok, warning or error along with some text message
+ */
+var TaskResult = /** @class */ (function () {
+    function TaskResult(error, warning, message) {
+        this.error = false;
+        this.warning = false;
+        this.ok = function () {
+            return !this.error;
+        };
+        this.error = error;
+        this.warning = warning;
+        this.message = message;
+    }
+    TaskResult.Message = function (message) { return new TaskResult(false, false, message); };
+    ;
+    TaskResult.Warning = function (message) { return new TaskResult(false, true, message); };
+    ;
+    TaskResult.Error = function (message) { return new TaskResult(true, false, message); };
+    ;
+    TaskResult.OK = function () { return new TaskResult(false, false, null); };
+    return TaskResult;
+}());
+/**
  * A task is one operation which bee can perform
  */
 var Task = /** @class */ (function () {
@@ -59,6 +82,7 @@ var bee = {
                 console.log("" + error.stderr);
             }
         }
+        return TaskResult.OK();
     }),
     tsc: new Task("Compile typescript source file.", [
         new Parameter("file", "File or wildcard of files to compile", "string", true),
@@ -85,6 +109,7 @@ var bee = {
             }
         }
         bee.exec.run("tsc" + file + outDir);
+        return TaskResult.OK();
     }),
     node: new Task("Call a node script.", [
         new Parameter("file", "File name of node script", "string", false)
@@ -95,11 +120,13 @@ var bee = {
         else {
             bee.exec.run("node " + config.file);
         }
+        return TaskResult.OK();
     }),
     test: new Task("Perform unit tests.", [
         new Parameter("file", "File name of unit test script", "string", false)
     ], function (config) {
         bee.node.run(config);
+        return TaskResult.OK();
     }),
     rmdir: new Task("Delete a directory and all its content.", [
         new Parameter("dir", "Name of a directory below the project directory.", "string", false)
@@ -116,6 +143,7 @@ var bee = {
             }
             bee.exec.run("rm -r " + deletedir);
         }
+        return TaskResult.OK();
     })
 };
 /**
@@ -177,6 +205,7 @@ console.log("                                                               | |_
 console.log("                                                               |_.__/ \\___|\\___|");
 console.log("                                                                       bee 0.4.0");
 console.log("                          * to build and to serve *");
+console.log("# ------------------------------------------------------------------------------");
 var commandLine = parseCommandLine();
 var project;
 if (commandLine.isEmpty) {

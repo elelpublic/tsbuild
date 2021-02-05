@@ -73,6 +73,7 @@ console.log( "                                                               | |
 console.log( "                                                               |_.__/ \\___|\\___|" );
 console.log( "                                                                       bee 0.4.0" );
 console.log( "                          * to build and to serve *" );
+console.log( "# ------------------------------------------------------------------------------" );
 
 let commandLine = parseCommandLine();
 let project: Project;

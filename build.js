@@ -33,7 +33,7 @@ exports.setup = function( project ) {
   };
 
   project.targets[ "compileTests" ] = {
-    description: "Run unit tests",
+    description: "Compile unit tests",
     depends: [],
     internal: true,
     code: function( bee ) {

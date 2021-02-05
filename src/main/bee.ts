@@ -71,14 +71,15 @@ console.log( "                                                               | |
 console.log( "                                                               | '_ \\ / _ \\/ _ \\" );
 console.log( "                                                               | |_) |  __/  __/" );
 console.log( "                                                               |_.__/ \\___|\\___|" );
-console.log( " * to build and to serve *                                             bee 0.4.0" );
+console.log( "                                                                       bee 0.4.0" );
+console.log( "                          * to build and to serve *" );
 
 let commandLine = parseCommandLine();
 let project: Project;
 
 if( commandLine.isEmpty ) {
   console.log( "" );
-  console.log( "Use 'bee -h' to show more information." );
+  console.log( "Use 'bee -h' to show help." );
 }
 else if( commandLine.showHelp ) {
   usage( null );
@@ -136,7 +137,7 @@ else {
 
 console.log( "" );
 console.log( "# ------------------------------------------------------------------------------" );
-console.log( "Bee finished its work after " + (Date.now() - t0) + " millis." );
+console.log( "# Bee finished its work after " + (Date.now() - t0) + " millis." );
 console.log( "# ==============================================================================" );
 
 // * * * ----------------------------------------------

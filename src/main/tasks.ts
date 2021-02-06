@@ -101,18 +101,20 @@ class Tasks {
           }
         }
         catch( error ) {
+          let message = "";
           if( error.status ) {
-            result = TaskResult.Error( "Return code: " + error.status );
+            message += "Return code: " + error.status + "\n";
           }
           if( error.message ) {
-            result = TaskResult.Error( "" + error.message );
+            message += error.message + "\n";
           }
           if( error.stdout ) {
-            result = TaskResult.Error( "" + error.stdout );
+            message += error.stdout + "\n";
           }
           if( error.stderr ) {
-            result = TaskResult.Error( "" + error.stderr );
+            message += error.stderr + "\n"
           }
+          result = TaskResult.Error( message );
         }
         return result;
       }
@@ -205,16 +207,25 @@ class Tasks {
 };
 
 class Bee {
+  commandLine: CommandLine;
+  constructor( commandLine: CommandLine ) {
+    this.commandLine = commandLine;
+  }
   tasks = new Tasks();
   run = function( result: TaskResult ) {
     if( result.error ) {
+      let message = "Error";
       if( result.message ) {
-        throw "" + result.message;
+        message = result.message;
+      }
+      if( commandLine.nofail ) {
+        console.log( message );
+        console.log( "Continuing... (because --nofail is set)" );
       }
       else {
-        throw "Error";
+        throw message;
       }
-    }
+  }
     else if( result.warning ) {
       if( result.message ) {
         console.log( result.message );

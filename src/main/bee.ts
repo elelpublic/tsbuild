@@ -30,6 +30,7 @@ class CommandLine {
   showDependencies = false;
   showInternalTargets = false;
   nodeps = false;
+  nofail = false;
   verbose = false;
   listTasks = false;
   targetFile: string;
@@ -58,8 +59,6 @@ class Project {
   defaultTarget: string;
 }
 
-let bee = new Bee();
-
 // -------------------------------------------------------------------
 // command line execution
 
@@ -77,6 +76,7 @@ console.log( "                          * to build and to serve *" );
 console.log( "# ------------------------------------------------------------------------------" );
 
 let commandLine = parseCommandLine();
+let bee = new Bee( commandLine );
 let project: Project;
 
 if( commandLine.isEmpty ) {
@@ -175,7 +175,8 @@ function runTarget( targetName: string, alreadyCalled: Object, project: Project,
       // call the actual target last
       try {
         log( "" );
-        log( "Performing target: '" + targetName + "'" + ( parentTargetName ? " (dependency of " + parentTargetName + ")": "" ) );
+        log( "Performing target: '" + targetName + "'" 
+          + ( parentTargetName ? " (dependency of " + parentTargetName + ")": "" ) );
         target.code( bee );
       }
       catch( error ) {
@@ -213,6 +214,7 @@ function usage( messageText: string ) {
     console.log( "  -pp ................ show dependencies too" );
     console.log( "  -ppp ............... show internal targets too" );
     console.log( "  --nodeps ........... do not run depencies of targets" );
+    console.log( "  --nofail ........... continue on errors" );
     console.log( "  -v ................. verbose, show more information on what is  executed" );
     console.log( "  -t ................. list all tasks" );
 
@@ -399,6 +401,9 @@ function parseCommandLine() : CommandLine {
       }
       else if( arg == "--nodeps" ) {
         commandLine.nodeps = true;
+      }
+      else if( arg == "--nofail" ) {
+        commandLine.nofail = true;
       }
       else if( arg == "-v" ) {
         commandLine.verbose = true;

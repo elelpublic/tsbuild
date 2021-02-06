@@ -277,7 +277,7 @@ else {
                 var alreadyCalled = new Object();
                 for (var i = 0; i < commandLine.targets.length; i++) {
                     var targetName = commandLine.targets[i];
-                    runTarget(targetName, alreadyCalled, project);
+                    runTarget(targetName, alreadyCalled, project, null);
                     if (project.error) {
                         console.log(project.errorMessage);
                     }
@@ -291,7 +291,7 @@ console.log("# -----------------------------------------------------------------
 console.log("# Bee finished its work after " + (Date.now() - t0) + " millis.");
 console.log("# ==============================================================================");
 // * * * ----------------------------------------------
-function runTarget(targetName, alreadyCalled, project) {
+function runTarget(targetName, alreadyCalled, project, parentTargetName) {
     var target = project.targets[targetName];
     if (!target) {
         project.error = true;
@@ -303,7 +303,7 @@ function runTarget(targetName, alreadyCalled, project) {
         if (target.depends && !commandLine.nodeps) {
             for (var i = 0; i < target.depends.length; i++) {
                 var dependencyName = target.depends[i];
-                runTarget(dependencyName, alreadyCalled, project);
+                runTarget(dependencyName, alreadyCalled, project, targetName);
                 if (project.error) {
                     return;
                 }
@@ -315,7 +315,7 @@ function runTarget(targetName, alreadyCalled, project) {
             // call the actual target last
             try {
                 log("");
-                log("Performing target: '" + targetName + "'");
+                log("Performing target: '" + targetName + "'" + (parentTargetName ? " (dependency of " + parentTargetName + ")" : ""));
                 target_1.code(bee);
             }
             catch (error) {

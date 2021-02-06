@@ -123,7 +123,7 @@ else {
         for( let i = 0; i < commandLine.targets.length; i++ ) {
       
           let targetName = commandLine.targets[ i ];
-          runTarget( targetName, alreadyCalled, project );
+          runTarget( targetName, alreadyCalled, project, null );
           if( project.error ) {
             console.log( project.errorMessage );
           }
@@ -146,7 +146,7 @@ console.log( "# ================================================================
 // * * * ----------------------------------------------
 
 
-function runTarget( targetName: string, alreadyCalled: Object, project: Project ) {
+function runTarget( targetName: string, alreadyCalled: Object, project: Project, parentTargetName: string ) {
 
   let target = project.targets[ targetName ];
   if( !target ) {
@@ -160,7 +160,7 @@ function runTarget( targetName: string, alreadyCalled: Object, project: Project 
     if( target.depends && !commandLine.nodeps ) {
       for( let i = 0; i < target.depends.length; i++ ) {
         let dependencyName = target.depends[ i ];
-        runTarget( dependencyName, alreadyCalled, project );
+        runTarget( dependencyName, alreadyCalled, project, targetName );
         if( project.error ) {
           return;
         }
@@ -175,7 +175,7 @@ function runTarget( targetName: string, alreadyCalled: Object, project: Project 
       // call the actual target last
       try {
         log( "" );
-        log( "Performing target: '" + targetName + "'" );
+        log( "Performing target: '" + targetName + "'" + ( parentTargetName ? " (dependency of " + parentTargetName + ")": "" ) );
         target.code( bee );
       }
       catch( error ) {

@@ -108,6 +108,7 @@ else {
           usage( "Error: Cannot run default target because no default target is defined.")
         }
         else {
+          console.log( "Running default target: " + project.defaultTarget );
           commandLine.targets.push( project.defaultTarget );
         }
       }

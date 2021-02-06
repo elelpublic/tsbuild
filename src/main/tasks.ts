@@ -218,7 +218,7 @@ class Bee {
       if( result.message ) {
         message = result.message;
       }
-      if( commandLine.nofail ) {
+      if( this.commandLine.nofail ) {
         console.log( message );
         console.log( "Continuing... (because --nofail is set)" );
       }

@@ -160,7 +160,7 @@ var Bee = /** @class */ (function () {
                 if (result.message) {
                     message_2 = result.message;
                 }
-                if (commandLine.nofail) {
+                if (this.commandLine.nofail) {
                     console.log(message_2);
                     console.log("Continuing... (because --nofail is set)");
                 }

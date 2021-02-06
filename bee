@@ -78,13 +78,13 @@ var Tasks = /** @class */ (function () {
                     message_1 += "Return code: " + error.status + "\n";
                 }
                 if (error.message) {
-                    message_1 += error.message + "\n";
+                    message_1 += error.message.toString("utf8") + "\n";
                 }
                 if (error.stdout) {
-                    message_1 += error.stdout + "\n";
+                    message_1 += error.stdout.toString("utf8") + "\n";
                 }
                 if (error.stderr) {
-                    message_1 += error.stderr + "\n";
+                    message_1 += error.stderr.toString("utf8") + "\n";
                 }
                 result = TaskResult.Error(message_1);
             }

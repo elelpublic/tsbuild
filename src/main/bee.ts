@@ -58,6 +58,7 @@ class Project {
   defaultTarget: string;
 }
 
+let bee = new Bee();
 
 // -------------------------------------------------------------------
 // command line execution

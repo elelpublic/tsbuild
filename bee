@@ -1,592 +1,563 @@
 #!/usr/bin/env node
-
+/**
+ * A parameter defines one unit of input to a task
+ */
+var Parameter = /** @class */ (function () {
+    function Parameter(name, description, type, optional) {
+        this.optional = false;
+        this.name = name;
+        this.description = description;
+        this.type = type;
+        this.optional = optional;
+    }
+    return Parameter;
+}());
+/**
+ * A task can return ok, warning or error along with some text message
+ */
+var TaskResult = /** @class */ (function () {
+    function TaskResult(error, warning, message) {
+        this.error = false;
+        this.warning = false;
+        this.ok = function () {
+            return !this.error;
+        };
+        this.error = error;
+        this.warning = warning;
+        this.message = message;
+    }
+    TaskResult.Message = function (message) { return new TaskResult(false, false, message); };
+    ;
+    TaskResult.Warning = function (message) { return new TaskResult(false, true, message); };
+    ;
+    TaskResult.Error = function (message) { return new TaskResult(true, false, message); };
+    ;
+    TaskResult.OK = function () { return new TaskResult(false, false, null); };
+    return TaskResult;
+}());
+/**
+ * A task is one operation which bee can perform
+ */
+var Task = /** @class */ (function () {
+    // run: function( config ) {
+    //   bee.node.run( config );
+    // }
+    function Task(tasks, description, parameters, run) {
+        this.tasks = tasks;
+        this.description = description;
+        this.parameters = parameters;
+        this.run = run;
+    }
+    return Task;
+}());
+var Tasks = /** @class */ (function () {
+    function Tasks() {
+        var tasks = this;
+        this.exec = new Task(tasks, "Execute a shell command.", [new Parameter("command", "Complete command line to be executed", "string", false)], function (input) {
+            var command;
+            if (typeof input === 'string' || input instanceof String) {
+                command = "" + input;
+            }
+            else {
+                command = input.command;
+            }
+            var result = TaskResult.OK();
+            var execSync = require("child_process").execSync;
+            try {
+                if (commandLine.verbose) {
+                    console.log("Shell command: " + command);
+                }
+                var output = execSync(command);
+                if (output) {
+                    result = TaskResult.Message("" + output);
+                }
+            }
+            catch (error) {
+                if (error.status) {
+                    result = TaskResult.Error("Return code: " + error.status);
+                }
+                if (error.message) {
+                    result = TaskResult.Error("" + error.message);
+                }
+                if (error.stdout) {
+                    result = TaskResult.Error("" + error.stdout);
+                }
+                if (error.stderr) {
+                    result = TaskResult.Error("" + error.stderr);
+                }
+            }
+            return result;
+        });
+        this.tsc = new Task(tasks, "Compile typescript source file.", [
+            new Parameter("file", "File or wildcard of files to compile", "string", true),
+            new Parameter("files", "List of files to compile", "string", true),
+            new Parameter("outDir", "Target directory for compiles js files", "string", true),
+            new Parameter("outFile", "Target javascript file", "string", true)
+        ], function (config) {
+            var file = "";
+            var outDir = "";
+            if (config) {
+                if (config.file) {
+                    file = " " + config.file;
+                }
+                if (config.files) {
+                    for (var i = 0; i < config.files.length; i++) {
+                        file += " " + config.files[i];
+                    }
+                }
+                if (config.outDir) {
+                    outDir = " -outDir " + config.outDir;
+                }
+                else if (config.outFile) {
+                    outDir = " -outFile " + config.outFile;
+                }
+            }
+            return tasks.exec.run("tsc" + file + outDir);
+        });
+        this.node = new Task(tasks, "Call a node script.", [
+            new Parameter("file", "File name of node script", "string", false)
+        ], function (config) {
+            if (!config || !config.file) {
+                return TaskResult.Error("Error: no test script specified");
+            }
+            else {
+                return tasks.exec.run("node " + config.file);
+            }
+        });
+        this.test = new Task(tasks, "Perform unit tests.", [
+            new Parameter("file", "File name of unit test script", "string", false)
+        ], function (config) {
+            return tasks.node.run(config);
+        });
+        this.rmdir = new Task(tasks, "Delete a directory and all its content.", [
+            new Parameter("dir", "Name of a directory below the project directory.", "string", false)
+        ], function (config) {
+            if (!config.dir) {
+                return TaskResult.Error("Error: missing parameter config.dir");
+            }
+            else {
+                var path = require('path');
+                var workdir = path.resolve(".");
+                var deletedir = path.resolve(config.dir);
+                if (!deletedir.startsWith(workdir)) {
+                    throw "Error: rmdir is not allowed outside of working directory.";
+                }
+                return tasks.exec.run("rm -r " + deletedir);
+            }
+        });
+    }
+    return Tasks;
+}());
+;
+var Bee = /** @class */ (function () {
+    function Bee() {
+        this.tasks = new Tasks();
+        this.run = function (result) {
+            if (result.error) {
+                if (result.message) {
+                    throw "" + result.message;
+                }
+                else {
+                    throw "Error";
+                }
+            }
+            else if (result.warning) {
+                if (result.message) {
+                    console.log(result.message);
+                }
+                else {
+                    console.log("Warning");
+                }
+            }
+            else {
+                if (result.message) {
+                    console.log(result.message);
+                }
+            }
+        };
+    }
+    return Bee;
+}());
 /**
  * --------------------------------------------------------------------------------------
- * 
+ *
  * Why is this file here?
- * 
+ *
  * Answer: bee is an antlike build system to perform some necessary tasks in this
  * project. This file contains the complete executable code for bee. Only nodejs is
  * required to run bee.
- * 
- * The targets to be achieved in this project are defined in the file: 
- * 
+ *
+ * The targets to be achieved in this project are defined in the file:
+ *
  * build.js
- * 
+ *
  * --------------------------------------------------------------------------------------
  */
-
-
-let t0 = Date.now();
-
-console.log( "# ------------------------------------------------------------------------------" );
-console.log( "                                                                _" );
-console.log( "                                                               | |__   ___  ___" );
-console.log( "                                                               | '_ \\ / _ \\/ _ \\" );
-console.log( "                                                               | |_) |  __/  __/" );
-console.log( "                                                               |_.__/ \\___|\\___|" );
-console.log( " * to build and to serve *                                             bee 0.3.0" );
-console.log( "" );
-console.log( "# ------------------------------------------------------------------------------" );
-console.log( "" );
-
-let commandLine = parseCommandLine();
-
-let project = loadBuildFile();
-
-if( project.error ) {
-  usage( project.errorMessage );
+var CommandLine = /** @class */ (function () {
+    function CommandLine() {
+        this.isEmpty = true;
+        this.targets = [];
+        this.runDefaultTarget = false;
+        this.showProjectInformation = false;
+        this.showDependencies = false;
+        this.showInternalTargets = false;
+        this.nodeps = false;
+        this.verbose = false;
+        this.listTasks = false;
+        this.showHelp = false;
+    }
+    return CommandLine;
+}());
+/**
+ * A target defines a step in the project build process
+ */
+var Target = /** @class */ (function () {
+    function Target() {
+    }
+    return Target;
+}());
+/**
+ * The description of the current software project built with bee
+ */
+var Project = /** @class */ (function () {
+    function Project() {
+        this.error = false;
+        this.targets = new Array();
+    }
+    return Project;
+}());
+var bee = new Bee();
+// -------------------------------------------------------------------
+// command line execution
+var t0 = Date.now();
+console.log("# ==============================================================================");
+console.log("                                                                _");
+console.log("                                                               | |__   ___  ___");
+console.log("                                                               | '_ \\ / _ \\/ _ \\");
+console.log("                                                               | |_) |  __/  __/");
+console.log("                                                               |_.__/ \\___|\\___|");
+console.log("                                                                       bee 0.4.0");
+console.log("                          * to build and to serve *");
+console.log("# ------------------------------------------------------------------------------");
+var commandLine = parseCommandLine();
+var project;
+if (commandLine.isEmpty) {
+    console.log("");
+    console.log("Use 'bee -h' to show help.");
+}
+else if (commandLine.showHelp) {
+    usage(null);
 }
 else {
-
-  if( commandLine.listTasks ) {
-    listTasks( commandLine.describeTask );
-  }
-  else {
-
-    if( commandLine.runDefaultTarget ) {
-      if( !project.defaultTarget ) {
-        usage( "Error: Cannot run default target because no default target is defined.")
-      }
-      else {
-        commandLine.targets.push( project.defaultTarget );
-      }
+    project = loadBuildFile();
+    if (project.error) {
+        usage(project.errorMessage);
     }
-  
-    if( commandLine.targets.length == 0 ) {
-      usage( "Please define one or more targets to run or run with option -d" );
+    else if (commandLine.showProjectInformation) {
+        usage(null);
     }
     else {
-  
-      let bee = createRunner();
-      let alreadyCalled = {};
-    
-      for( let i = 0; i < commandLine.targets.length; i++ ) {
-    
-        let targetName = commandLine.targets[ i ];
-        call( targetName, alreadyCalled, project, bee );
-    
-      }
-      
+        if (commandLine.listTasks) {
+            listTasks(commandLine.describeTask);
+        }
+        else {
+            if (commandLine.runDefaultTarget) {
+                if (!project.defaultTarget) {
+                    usage("Error: Cannot run default target because no default target is defined.");
+                }
+                else {
+                    commandLine.targets.push(project.defaultTarget);
+                }
+            }
+            if (commandLine.targets.length == 0 && !commandLine.showHelp) {
+                usage("Please define one or more targets to run or run with option -d");
+            }
+            else {
+                var alreadyCalled = new Object();
+                for (var i = 0; i < commandLine.targets.length; i++) {
+                    var targetName = commandLine.targets[i];
+                    runTarget(targetName, alreadyCalled, project);
+                    if (project.error) {
+                        console.log(project.errorMessage);
+                    }
+                }
+            }
+        }
     }
-  
-  }
-
 }
-
-console.log( "" );
-console.log( "# ------------------------------------------------------------------------------" );
-console.log( "" );
-console.log( "Finished after " + (Date.now() - t0) + " millis." );
-console.log( "" );
-  
-
+console.log("");
+console.log("# ------------------------------------------------------------------------------");
+console.log("# Bee finished its work after " + (Date.now() - t0) + " millis.");
+console.log("# ==============================================================================");
 // * * * ----------------------------------------------
-
-
-function call( targetName, alreadyCalled, project, bee ) {
-
-  let target = project.targets[ targetName ];
-  if( !target ) {
-    throw "Error: target '" + targetName + "' not found.";
-  }
-  else {
-
-    // call dependencies first
-    if( target.depends && !commandLine.nodeps ) {
-      for( let i = 0; i < target.depends.length; i++ ) {
-        let dependencyName = target.depends[ i ];
-        call( dependencyName, alreadyCalled, project, bee );
-      }
+function runTarget(targetName, alreadyCalled, project) {
+    var target = project.targets[targetName];
+    if (!target) {
+        project.error = true;
+        project.errorMessage = "Error: target '" + targetName + "' not found.";
+        return;
     }
-
-    if( !alreadyCalled[ targetName ] ) {
-
-      alreadyCalled[ targetName ] = true;
-      let target = project.targets[ targetName ];
-
-      // call the actual target last
-      try {
-        log( "Performing target: '" + targetName + "'" );
-        target.code( bee );
-      }
-      catch( error ) {
-        message( "Error in target '" + targetName + "':\n" + error );
-      }
-
+    else {
+        // call dependencies first
+        if (target.depends && !commandLine.nodeps) {
+            for (var i = 0; i < target.depends.length; i++) {
+                var dependencyName = target.depends[i];
+                runTarget(dependencyName, alreadyCalled, project);
+                if (project.error) {
+                    return;
+                }
+            }
+        }
+        if (!alreadyCalled[targetName]) {
+            alreadyCalled[targetName] = true;
+            var target_1 = project.targets[targetName];
+            // call the actual target last
+            try {
+                log("");
+                log("Performing target: '" + targetName + "'");
+                target_1.code(bee);
+            }
+            catch (error) {
+                project.error = true;
+                project.errorMessage = "Error in target '" + targetName + "':\n" + error;
+            }
+        }
     }
-
-  }
-
 }
-
-
 /**
  * Show a message and the usage information
- * 
+ *
  * @param messageText Extra message
- * 
+ *
  */
-function usage( messageText ) {
-
-  console.log( "Usage:" );
-  console.log( "  bee [options] default | [target [target2 [target3]  ..]]" );
-  console.log( "" );
-  console.log( "Runs the given targets or the default target if no target is given." );
-  console.log( "" );
-  console.log( "Options:" );
-  console.log( "  -f <file> .......... load targets from <file> instead of the default 'build.js'" );
-  console.log( "  -d ................. run the default target" );
-  console.log( "  -a ................. show all targets (including internal targets)" );
-  console.log( "  --nodeps ........... do not run depencies of targets" );
-  console.log( "  -v ................. verbose, show more information on what is  executed" );
-  console.log( "  -t ................. list all tasks" );
-
-  console.log( "" );
-  console.log( "# ------------------------------------------------------------------------------" );
-  console.log( "" );
-    if( project.name ) {
-    console.log( "Project: " );
-    console.log( "  " + project.name + ( project.description ? ": " + project.description : "" ) );
-  }
-
-  console.log( "" );
-  console.log( "Available targets:" );
-
-  try {
-
-    let allTargetNames = Object.keys( project.targets );
-  
-    if( allTargetNames.length == 0 ) {
-      console.log( "  - no targets -" );
+function usage(messageText) {
+    if (commandLine.showHelp) {
+        console.log("");
+        console.log("Usage:");
+        console.log("  bee [options] -d | [target [target2 [target3]  ..]]");
+        console.log("");
+        console.log("Runs the given targets or the default target.");
+        console.log("");
+        console.log("Options:");
+        console.log("  -f <file> .......... load targets from <file> instead of the default 'build.js'");
+        console.log("  -d ................. run the default target");
+        console.log("  -p ................. show project information and targets");
+        console.log("  -pp ................ show dependencies too");
+        console.log("  -ppp ............... show internal targets too");
+        console.log("  --nodeps ........... do not run depencies of targets");
+        console.log("  -v ................. verbose, show more information on what is  executed");
+        console.log("  -t ................. list all tasks");
     }
-    else {
-      let length = 0;
-      for( let i = 0; i < allTargetNames.length; i++ ) {
-        let targetName = allTargetNames[ i ];
-        length = length < targetName.length ? targetName.length : length;
-      }
-      for( let i = 0; i < allTargetNames.length; i++ ) {
-        let targetName = allTargetNames[ i ];
-        let target = project.targets[ targetName ];
-        if( !target.internal || commandLine.showAlltargets ) {
-          console.log( "  " + targetName + " " + ".".repeat( length + 6 - targetName.length ) 
-          + " " + (target.description ? target.description : " - no description -" ) );
+    if (commandLine.showProjectInformation) {
+        console.log("");
+        console.log("# ------------------------------------------------------------------------------");
+        console.log("");
+        if (project.name) {
+            console.log("Project: ");
+            console.log("  " + project.name + (project.description ? ": " + project.description : ""));
         }
-      }
+        console.log("");
+        console.log("Available targets:");
+        try {
+            var allTargetNames = Object.keys(project.targets);
+            if (allTargetNames.length == 0) {
+                console.log("  - no targets -");
+            }
+            else {
+                var length_1 = 0;
+                for (var i = 0; i < allTargetNames.length; i++) {
+                    var targetName = allTargetNames[i];
+                    length_1 = length_1 < targetName.length ? targetName.length : length_1;
+                }
+                for (var i = 0; i < allTargetNames.length; i++) {
+                    var targetName = allTargetNames[i];
+                    var target = project.targets[targetName];
+                    if (!target.internal || commandLine.showInternalTargets) {
+                        var line = "  " + targetName + " " + ".".repeat(length_1 + 6 - targetName.length)
+                            + " " + (target.description ? target.description : " - no description -");
+                        var sep = "";
+                        if (commandLine.showDependencies) {
+                            line += " (depends: ";
+                            for (var ii = 0; ii < target.depends.length; ii++) {
+                                line += sep + target.depends[ii];
+                                sep = ", ";
+                            }
+                            line += ")";
+                        }
+                        console.log(line);
+                    }
+                }
+            }
+            console.log("");
+            console.log("Default target: ");
+            console.log(project.defaultTarget ? "  " + project.defaultTarget : "  - no default target -");
+        }
+        catch (exception) {
+            console.log();
+        }
     }
-    console.log( "" );
-    console.log( "Default target: " );
-    console.log( project.defaultTarget ? "  " + project.defaultTarget : "  - no default target -" );
-  
-  }
-  catch( exception ) {
-    console.log();
-  }
-
-  if( messageText ) {
-    console.log( "" );
-    console.log( "# ------------------------------------------------------------------------------" );
-    message( messageText );
-  }
-
+    if (messageText) {
+        message(messageText);
+    }
 }
-
 /**
  * Show error or other message
- * 
- * @param message 
- * 
+ *
+ * @param message
+ *
  */
-function message( message ) {
-
-  console.log( "" );
-  console.log( "# " + message );
-
+function message(message) {
+    console.log("");
+    console.log("# ------------------------------------------------------------------------------");
+    console.log(message);
 }
-
 /**
  * Log a line of text
- * 
+ *
  * @param line Line to log
- * 
+ *
  */
-function log( line ) {
-  console.log( line );
+function log(line) {
+    console.log(line);
 }
-
 /**
  * List all tasks
- * 
+ *
  * @param Optional: if given describe this task in detail
- * 
+ *
  */
-function listTasks( taskName ) {
-
-  let runner = createRunner();
-  let taskNames = Object.keys( runner );
-
-  if( taskName && taskNames.indexOf( taskName ) != -1 ) {
-    // describe a task in detail
-    let task = runner[ taskName ];
-    console.log( "# Task: " + taskName );
-    //console.log( "" );
-    console.log( "  Description: " + (task.description ? task.description : " - no description - " ) );
-    if( !task.parameters ) {
-      console.log( "  - no Parameters -" );
+function listTasks(taskName) {
+    var taskNames = Object.keys(bee);
+    if (taskName && taskNames.indexOf(taskName) != -1) {
+        // describe a task in detail
+        var task = bee[taskName];
+        console.log("# Task: " + taskName);
+        //console.log( "" );
+        console.log("  Description: " + (task.description ? task.description : " - no description - "));
+        if (!task.parameters) {
+            console.log("  - no Parameters -");
+        }
+        else {
+            console.log("  Parameters:");
+            for (var i = 0; i < task.parameters.length; i++) {
+                var parameter = task.parameters[i];
+                var line = '    "' + parameter.name + '" (' + parameter.type + (parameter.optional ? ' optional' : '') + ')' + ' ...';
+                var dots = 40 - line.length;
+                if (dots < 0) {
+                    dots = 0;
+                }
+                console.log(line + '.'.repeat(dots) + ' ' + parameter.description);
+            }
+        }
     }
     else {
-      console.log( "  Parameters:" );
-      for( let i = 0; i < task.parameters.length; i++ ) {
-        let parameter = task.parameters[ i ];
-        let line = '    "' + parameter.name + '" (' + parameter.type + ( parameter.optional ? ' optional' : '' ) + ')' + ' ...';
-        let dots = 40 - line.length;
-        if( dots < 0 ) {
-          dots = 0;
+        console.log("");
+        console.log("Available tasks:");
+        console.log("");
+        var length_2 = 0;
+        for (var i = 0; i < taskNames.length; i++) {
+            var taskName_1 = taskNames[i];
+            if (taskName_1.length > length_2) {
+                length_2 = taskName_1.length;
+            }
         }
-        console.log( line + '.'.repeat( dots ) + ' '  + parameter.description );
-      }
+        for (var i = 0; i < taskNames.length; i++) {
+            var taskName_2 = taskNames[i];
+            var task = bee[taskName_2];
+            console.log("  " + taskName_2 + " " + ".".repeat(length_2 + 6 - taskName_2.length)
+                + " " + (task.description ? task.description : " - no description -"));
+        }
+        console.log("");
+        console.log("To show more information about a task, call:");
+        console.log("");
+        console.log("bee -t <taskname>");
     }
-  }
-  else {
-    console.log( "# Available tasks:" );
-    console.log( "" );
-    let length = 0;
-    for( let i = 0; i < taskNames.length; i++ ) {
-      let taskName = taskNames[ i ];
-      if( taskName.length > length ) {
-        length = taskName.length;
-      }
-    }
-    for( let i = 0; i < taskNames.length; i++ ) {
-      let taskName = taskNames[ i ];
-      let task = runner[ taskName ];
-      console.log( "  " + taskName + " " + ".".repeat( length + 6 - taskName.length ) 
-        + " " + (task.description ? task.description : " - no description -" ) );
-    }
-    console.log( "" );
-    console.log( "To show more information about a task, call:" );
-    console.log( "" );
-    console.log( "bee -t <taskname>" );  
-  }
-
 }
-
-/**
- * Execute shell command
- * 
- * @param command Shell command
- * 
- */
-function exec( command, onClose ) {
-
-  console.log( "Running script: " + command );
-
-  const { spawn } = require( "child_process" );
-  
-  const proc = spawn( command );
-
-  proc.stdout.on("data", data => {
-      console.log( `${data}` );
-  });
-
-  proc.stderr.on("data", data => {
-    console.log( `${data}` );
-  });
-
-  proc.on('error', (error) => {
-    console.log( error ? "" + error : "" );
-  });
-
-  proc.on("close", code => {
-    onClose( code );
-  });
-
-}
-
 /**
  * Parse command line arguments in to an object for easy access
- * 
+ *
  */
 function parseCommandLine() {
-
-  let commandLine = {
-    targets: [],
-    runDefaultTarget: false
-  };
-
-  let currentParamName = null;
-
-  for( let i = 2; i < process.argv.length; i++ ) {
-    let arg = process.argv[ i ];
-    if( currentParamName == null ) {
-      if( arg == "-f" ) {
-        currentParamName = "targetFile"
-        commandLine.targets = [];
-      }
-      else if( arg == "-d" ) {
-        commandLine.runDefaultTarget = true;
-      }
-      else if( arg == "-a" ) {
-        commandLine.showAlltargets = true;
-      }
-      else if( arg == "--nodeps" ) {
-        commandLine.nodeps = true;
-      }
-      else if( arg == "-v" ) {
-        commandLine.verbose = true;
-      }
-      else if( arg == "-t" ) {
-        commandLine.listTasks = true;
-        currentParamName = "describeTask"
-      }
-      else {
-        commandLine.targets.push( arg );
-      }
+    var commandLine = new CommandLine();
+    var currentParamName = null;
+    for (var i = 2; i < process.argv.length; i++) {
+        commandLine.isEmpty = false;
+        var arg = process.argv[i];
+        if (currentParamName == null) {
+            if (arg == "-f") {
+                currentParamName = "targetFile";
+                commandLine.targets = [];
+            }
+            else if (arg == "-d") {
+                commandLine.runDefaultTarget = true;
+            }
+            else if (arg == "-p") {
+                commandLine.showProjectInformation = true;
+            }
+            else if (arg == "-pp") {
+                commandLine.showProjectInformation = true;
+                commandLine.showDependencies = true;
+            }
+            else if (arg == "-ppp") {
+                commandLine.showProjectInformation = true;
+                commandLine.showDependencies = true;
+                commandLine.showInternalTargets = true;
+            }
+            else if (arg == "--nodeps") {
+                commandLine.nodeps = true;
+            }
+            else if (arg == "-v") {
+                commandLine.verbose = true;
+            }
+            else if (arg == "-t") {
+                commandLine.listTasks = true;
+                currentParamName = "describeTask";
+            }
+            else if (arg == "-h") {
+                commandLine.showHelp = true;
+            }
+            else {
+                commandLine.targets.push(arg);
+            }
+        }
+        else {
+            commandLine[currentParamName] = arg;
+            currentParamName = null;
+        }
     }
-    else {
-      commandLine[ currentParamName ] = arg;
-      currentParamName = null;
-    }
-  }
-
-  return commandLine;
-
+    return commandLine;
 }
-
 /**
- * Load the build.js (or alternative file) of target 
- * 
+ * Load the build.js (or alternative file) of target
+ *
  * @return The project object with loaded target configuration or an error message
- * 
+ *
  */
 function loadBuildFile() {
-
-  let project = {
-    error: false,
-    errorMessage: null,
-    targets: {}
-  };
-
-  let targetFileName = commandLine.targetFile;
-
-  if( !targetFileName ) {
-    targetFileName = "build.js";
-  }
-  
-  const path = require( 'path' );
-  targetFileName = path.resolve( targetFileName );
-
-  const fs = require( 'fs' );
-
-  if( !fs.existsSync( targetFileName ) ) {
-    project.error = true;
-    project.errorMessage = "Error: target file '" + targetFileName + "' not found.";
-  }
-  else {
-
-    try {
-
-      let targetsFile = require( targetFileName );
-      targetsFile.setup( project );
-  
+    var project = new Project();
+    var targetFileName = commandLine.targetFile;
+    if (!targetFileName) {
+        targetFileName = "build.js";
     }
-    catch( error ) {
-      project.error = true;
-      project.errorMessage = "Error in setup of target file '" + targetFileName + "':\n";
-      if( error && error.stack ) {
-        project.errorMessage += error.stack;
-      }
+    var path = require('path');
+    targetFileName = path.resolve(targetFileName);
+    var fs = require('fs');
+    if (!fs.existsSync(targetFileName)) {
+        project.error = true;
+        project.errorMessage = "Error: target file '" + targetFileName + "' not found.";
     }
-
-  }
-
-  return project;
-
-}
-
-
-// Taks ---------------------------------------
-
-/**
- * Create a runtime environment for targets which allows them to use many bee functionality
- * 
- */
-function createRunner() {
-  
-   let bee = {
-
-    /**
-     * Task: Execute shell command
-     * 
-     * @param command Shell command
-     * 
-     */
-    exec: {
-      description: "Execute a shell command.",
-      parameters: [
-        {
-          name: "command",
-          description: "Complete command line to be executed",
-          type: "string",
-          optional: false
-        }
-      ],
-      run: function( input ) {
-        let command;
-        if( typeof input === 'string' || input instanceof String ) {
-          command = "" + input;
-        }
-        else {
-          command = input.command;
-        }
-        const { execSync } = require("child_process");
+    else {
         try {
-          if( commandLine.verbose ) {
-            console.log( "Shell command: " + command );
-          }
-          let output = execSync( command );
-          if( output ) {
-            console.log( "" + output );
-          }
+            var targetsFile = require(targetFileName);
+            targetsFile.setup(project);
         }
-        catch( error ) {
-          if( error.status ) {
-            console.log( "Return code: " + error.status );
-          }
-          if( error.message ) {
-            console.log( error.message );
-          }
-          if( error.stdout ) {
-            console.log( "" + error.stdout );
-          }
-          if( error.stderr ) {
-            console.log( "" + error.stderr );
-          }
+        catch (error) {
+            project.error = true;
+            project.errorMessage = "Error in setup of target file '" + targetFileName + "':\n";
+            if (error && error.stack) {
+                project.errorMessage += error.stack;
+            }
         }
-      }
-    },
-
-    /**
-     * Task: Call typescript compile tsc
-     * 
-     * @param config.file Optional file specified (for example: *.tsc)
-     * 
-     */
-    tsc: {
-      description: "Compile typescript source file.",
-      parameters: [
-        {
-          name: "file",
-          description: "File or wildcard of files to compile",
-          type: "string",
-          optional: true
-        }
-        , {
-          name: "outDir",
-          description: "Target directory for compiles js files",
-          type: "string",
-          optional: true
-        }
-      ],
-      run: function( config ) {
-        let file = "";
-        let outDir = "";
-        if( config ) {
-          if( config.file ) {
-            file = " " + config.file;
-          }
-          if( config.outDir ) {
-            outDir = " -outDir " + config.outDir;
-          }
-        }
-        bee.exec.run( "tsc" + file + outDir );
-      }
-    },
-
-    /**
-     * Task: Run nodejs script
-     * 
-     * @param config.file Optional file specified (for example: *.tsc)
-     * 
-     */
-    node: {
-      description: "Call a node script.",
-      parameters: [
-        {
-          name: "file",
-          description: "File name of node script",
-          type: "string",
-          optional: false
-        }
-      ],
-      run: function( config ) {
-        if( !config || !config.file ) {
-          usage( "Error: no test script specified" );
-        }
-        else {
-          bee.exec.run( "node " + config.file );
-        }
-      }
-    },
-
-    /**
-     * Task: Run unit test with tsunit
-     * 
-     * @param config.file File containg unit tests
-     * 
-     */
-    test: {
-      description: "Perform unit tests.",
-      parameters: [
-        {
-          name: "file",
-          description: "File name of unit test script",
-          type: "string",
-          optional: false
-        }
-      ],
-      run: function( config ) {
-        bee.node.run( config );
-      }
-    },
-
-    /**
-     * Delete directory and all content
-     * 
-     * @param config.dir Directory to delete
-     * 
-     */
-    rmdir: {
-      description: "Delete a directory and all its content.",
-      parameters: [
-        {
-          name: "dir",
-          description: "Name of a directory below the project directory.",
-          type: "string",
-          optional: false
-        }
-      ],
-      run: function( config ) {
-        if( !config.dir ) {
-          throw "Error: missing parameter config.dir";
-        }
-        else {
-          const path = require( 'path' );
-          let workdir = path.resolve( "." );
-          let deletedir = path.resolve( config.dir );
-          if( !deletedir.startsWith( workdir ) ) {
-            throw "Error: rmdir is not allowed outside of working directory."
-          }
-          bee.exec.run( "rm -r " + deletedir );
-        }
-      }
     }
-
-  };
-
-  return bee;
-
+    return project;
 }
-
-

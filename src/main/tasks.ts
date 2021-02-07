@@ -45,13 +45,13 @@ class Task {
   
   //run: Function;
 
-  run: ( input ) => TaskResult;
+  run: ( bee: Bee, input ) => TaskResult;
   
   // run: function( config ) {
   //   bee.node.run( config );
   // }
   
-  constructor( tasks: Tasks, description: string, parameters: Array<Parameter>, run: ( input ) => TaskResult ) {
+  constructor( tasks: Tasks, description: string, parameters: Array<Parameter>, run: ( bee: Bee, input ) => TaskResult ) {
     this.tasks = tasks;
     this.description = description;
     this.parameters = parameters;
@@ -78,7 +78,7 @@ class Tasks {
       "Execute a shell command.",
       [ new Parameter( "command", "Complete command line to be executed", "string", false ) ],
       
-      function( input ) {
+      function( bee: Bee, input ) {
         
         let command;
         if( typeof input === 'string' || input instanceof String ) {
@@ -130,7 +130,7 @@ class Tasks {
         new Parameter( "outDir", "Target directory for compiles js files", "string", true ),
         new Parameter( "outFile", "Target javascript file", "string", true )
       ],
-      function( config ) {
+      function( bee: Bee, config ) {
         let file = "";
         let outDir = "";
         if( config ) {
@@ -149,7 +149,7 @@ class Tasks {
             outDir = " -outFile " + config.outFile;
           }
         }
-        return tasks.exec.run( "tsc" + file + outDir );
+        return tasks.exec.run( bee, "tsc" + file + outDir );
       }
     );
     
@@ -159,12 +159,12 @@ class Tasks {
       [
         new Parameter( "file", "File name of node script", "string", false )
       ],
-      function( config ) {
+      function( bee: Bee, config ) {
         if( !config || !config.file ) {
           return TaskResult.Error( "Error: no test script specified" );
         }
         else {
-          return tasks.exec.run( "node " + config.file );
+          return tasks.exec.run( bee, "node " + config.file );
         }
       }
     );
@@ -174,10 +174,18 @@ class Tasks {
       tasks,
       "Perform unit tests.",
       [
-        new Parameter( "file", "File name of unit test script", "string", false )
+        new Parameter( "test", "Name of test", "string", false )
       ],
-      function( config ) {
-        return tasks.node.run( config );
+      function( bee: Bee, config ) {
+        if( !config.test ) {
+          return TaskResult.Error( "Error: no test name given." );
+        }
+        let test = project.tests[ config.test ];
+        if( !test ) {
+          return TaskResult.Error( "Error: no test name '" + config.test + "' found" );
+        }
+        test.code( bee )
+        return TaskResult.Message( "Test result not yet implemented" );
       }
     );
     
@@ -187,7 +195,7 @@ class Tasks {
       [
         new Parameter( "dir", "Name of a directory below the project directory.", "string", false )
       ],
-      function( config ) {
+      function( bee: Bee, config ) {
         if( !config.dir ) {
           return TaskResult.Error( "Error: missing parameter config.dir" );
         }
@@ -198,7 +206,7 @@ class Tasks {
           if( !deletedir.startsWith( workdir ) ) {
             throw "Error: rmdir is not allowed outside of working directory."
           }
-          return tasks.exec.run( "rm -r " + deletedir );
+          return tasks.exec.run( bee, "rm -r " + deletedir );
         }
       }
     );

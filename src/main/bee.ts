@@ -48,6 +48,14 @@ class Target {
 }
 
 /**
+ * A unit test
+ */
+class Test {
+  description: string;
+  code: Function;
+}
+
+/**
  * The description of the current software project built with bee
  */
 class Project {
@@ -57,6 +65,7 @@ class Project {
   errorMessage: string;
   targets = new Array<Target>();
   defaultTarget: string;
+  tests = new Array<Test>();
 }
 
 // -------------------------------------------------------------------

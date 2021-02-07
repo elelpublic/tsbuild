@@ -53,7 +53,7 @@ var Task = /** @class */ (function () {
 var Tasks = /** @class */ (function () {
     function Tasks() {
         var tasks = this;
-        this.exec = new Task(tasks, "Execute a shell command.", [new Parameter("command", "Complete command line to be executed", "string", false)], function (input) {
+        this.exec = new Task(tasks, "Execute a shell command.", [new Parameter("command", "Complete command line to be executed", "string", false)], function (bee, input) {
             var command;
             if (typeof input === 'string' || input instanceof String) {
                 command = "" + input;
@@ -78,13 +78,13 @@ var Tasks = /** @class */ (function () {
                     message_1 += "Return code: " + error.status + "\n";
                 }
                 if (error.message) {
-                    message_1 += error.message.toString("utf8") + "\n";
+                    message_1 += error.message + "\n";
                 }
                 if (error.stdout) {
-                    message_1 += error.stdout.toString("utf8") + "\n";
+                    message_1 += error.stdout + "\n";
                 }
                 if (error.stderr) {
-                    message_1 += error.stderr.toString("utf8") + "\n";
+                    message_1 += error.stderr + "\n";
                 }
                 result = TaskResult.Error(message_1);
             }
@@ -95,7 +95,7 @@ var Tasks = /** @class */ (function () {
             new Parameter("files", "List of files to compile", "string", true),
             new Parameter("outDir", "Target directory for compiles js files", "string", true),
             new Parameter("outFile", "Target javascript file", "string", true)
-        ], function (config) {
+        ], function (bee, config) {
             var file = "";
             var outDir = "";
             if (config) {
@@ -114,26 +114,34 @@ var Tasks = /** @class */ (function () {
                     outDir = " -outFile " + config.outFile;
                 }
             }
-            return tasks.exec.run("tsc" + file + outDir);
+            return tasks.exec.run(bee, "tsc" + file + outDir);
         });
         this.node = new Task(tasks, "Call a node script.", [
             new Parameter("file", "File name of node script", "string", false)
-        ], function (config) {
+        ], function (bee, config) {
             if (!config || !config.file) {
                 return TaskResult.Error("Error: no test script specified");
             }
             else {
-                return tasks.exec.run("node " + config.file);
+                return tasks.exec.run(bee, "node " + config.file);
             }
         });
         this.test = new Task(tasks, "Perform unit tests.", [
-            new Parameter("file", "File name of unit test script", "string", false)
-        ], function (config) {
-            return tasks.node.run(config);
+            new Parameter("test", "Name of test", "string", false)
+        ], function (bee, config) {
+            if (!config.test) {
+                return TaskResult.Error("Error: no test name given.");
+            }
+            var test = project.tests[config.test];
+            if (!test) {
+                return TaskResult.Error("Error: no test name '" + config.test + "' found");
+            }
+            test.code(bee);
+            return TaskResult.Message("Test result not yet implemented");
         });
         this.rmdir = new Task(tasks, "Delete a directory and all its content.", [
             new Parameter("dir", "Name of a directory below the project directory.", "string", false)
-        ], function (config) {
+        ], function (bee, config) {
             if (!config.dir) {
                 return TaskResult.Error("Error: missing parameter config.dir");
             }
@@ -144,7 +152,7 @@ var Tasks = /** @class */ (function () {
                 if (!deletedir.startsWith(workdir)) {
                     throw "Error: rmdir is not allowed outside of working directory.";
                 }
-                return tasks.exec.run("rm -r " + deletedir);
+                return tasks.exec.run(bee, "rm -r " + deletedir);
             }
         });
     }
@@ -226,12 +234,21 @@ var Target = /** @class */ (function () {
     return Target;
 }());
 /**
+ * A unit test
+ */
+var Test = /** @class */ (function () {
+    function Test() {
+    }
+    return Test;
+}());
+/**
  * The description of the current software project built with bee
  */
 var Project = /** @class */ (function () {
     function Project() {
         this.error = false;
         this.targets = new Array();
+        this.tests = new Array();
     }
     return Project;
 }());

@@ -1,4 +1,4 @@
-class MyMath {
+export class MyMath {
   sqrt( i: number ) : number {
     return i * i;
   }

@@ -75,13 +75,14 @@ class Project {
 let t0 = Date.now();
 
 console.log( "# ==============================================================================" );
-console.log( "                                                                _" );
-console.log( "                                                               | |__   ___  ___" );
-console.log( "                                                               | '_ \\ / _ \\/ _ \\" );
-console.log( "                                                               | |_) |  __/  __/" );
-console.log( "                                                               |_.__/ \\___|\\___|" );
+console.log( "" );
+console.log( "                . - *         ___                         _" );
+console.log( "              *       .       \\__))   //                 | |__   ___  ___" );
+console.log( "           .            * .  <((_(()(o_o)                |  _ \\ / _ \\/ _ \\" );
+console.log( "  .      *                    //  |\\                     | |_) |  __/  __/" );
+console.log( "    * .                                                  |_.__/ \\___|\\___|" );
 console.log( "                                                                       bee 0.4.0" );
-console.log( "                          * to build and to serve *" );
+console.log( "                      * to build and to serve *" );
 console.log( "# ------------------------------------------------------------------------------" );
 
 let commandLine = parseCommandLine();

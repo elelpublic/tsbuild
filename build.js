@@ -28,7 +28,8 @@ exports.setup = function( project ) {
     depends: [],
     internal: true,
     code: function( bee ) {
-      bee.run( bee.tasks.tsc.run( bee, { file: "src/tests/*.ts", outDir: "target" }) );
+      bee.run( bee.tasks.tsc.run( bee, { file: "src/tests/DemoCode.ts", outDir: "target" }) );
+      bee.run( bee.tasks.exec.run( bee, { command: "cp src/tests/DemoTest.js target" }) );
     }
   };
 
@@ -37,7 +38,8 @@ exports.setup = function( project ) {
     depends: [ "compileTests" ],
     code: function( bee ) {
       //bee.exec.run( "src/tests/alltests.js" );
-      bee.run( bee.tasks.test.run( bee, { test: "testMath" }) );
+      //bee.run( bee.tasks.test.run( bee, { test: "testMath" }) );
+      bee.run( bee.tasks.test.run( bee, { file: "target/DemoTest.js" }) );
     }
   };
 
@@ -58,12 +60,12 @@ exports.setup = function( project ) {
     }
   };
 
-  project.tests[ "testMath" ] = {
-    description: "Test the math class.",
-    code: function( bee ) {
-      console.log( "This is a test, bee: " + bee );
-    }
-  }
+  // project.tests[ "testMath" ] = {
+  //   description: "Test the math class.",
+  //   code: function( bee ) {
+  //     console.log( "This is a test, bee: " + bee );
+  //   }
+  // }
 
 }
 

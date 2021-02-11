@@ -116,28 +116,39 @@ var Tasks = /** @class */ (function () {
             }
             return tasks.exec.run(bee, "tsc" + file + outDir);
         });
-        this.node = new Task(tasks, "Call a node script.", [
+        this.call = new Task(tasks, "Call a node script.", [
             new Parameter("file", "File name of node script", "string", false)
         ], function (bee, config) {
             if (!config || !config.file) {
                 return TaskResult.Error("Error: no test script specified");
             }
             else {
-                return tasks.exec.run(bee, "node " + config.file);
+                var path = require('path');
+                var testScriptFile = path.resolve(config.file);
+                var testScript = require(testScriptFile);
+                testScript.test(bee);
+                return TaskResult.OK();
+                //return tasks.exec.run( bee, "node " + config.file );
             }
         });
         this.test = new Task(tasks, "Perform unit tests.", [
             new Parameter("test", "Name of test", "string", false)
         ], function (bee, config) {
-            if (!config.test) {
-                return TaskResult.Error("Error: no test name given.");
+            if (!config || !config.file) {
+                return TaskResult.Error("Error: no test script specified");
             }
-            var test = project.tests[config.test];
-            if (!test) {
-                return TaskResult.Error("Error: no test name '" + config.test + "' found");
+            else {
+                return tasks.call.run(bee, config);
             }
-            test.code(bee);
-            return TaskResult.Message("Test result not yet implemented");
+            // if( !config.test ) {
+            //   return TaskResult.Error( "Error: no test name given." );
+            // }
+            // let test = project.tests[ config.test ];
+            // if( !test ) {
+            //   return TaskResult.Error( "Error: no test name '" + config.test + "' found" );
+            // }
+            // test.code( bee )
+            // return TaskResult.Message( "Test result not yet implemented" );
         });
         this.rmdir = new Task(tasks, "Delete a directory and all its content.", [
             new Parameter("dir", "Name of a directory below the project directory.", "string", false)
@@ -256,13 +267,14 @@ var Project = /** @class */ (function () {
 // command line execution
 var t0 = Date.now();
 console.log("# ==============================================================================");
-console.log("                                                                _");
-console.log("                                                               | |__   ___  ___");
-console.log("                                                               | '_ \\ / _ \\/ _ \\");
-console.log("                                                               | |_) |  __/  __/");
-console.log("                                                               |_.__/ \\___|\\___|");
+console.log("");
+console.log("                . - *         ___                         _");
+console.log("              *       .       \\__))   //                 | |__   ___  ___");
+console.log("           .            * .  <((_(()(o_o)                |  _ \\ / _ \\/ _ \\");
+console.log("  .      *                    //  |\\                     | |_) |  __/  __/");
+console.log("    * .                                                  |_.__/ \\___|\\___|");
 console.log("                                                                       bee 0.4.0");
-console.log("                          * to build and to serve *");
+console.log("                      * to build and to serve *");
 console.log("# ------------------------------------------------------------------------------");
 var commandLine = parseCommandLine();
 var bee = new Bee(commandLine);

@@ -63,7 +63,7 @@ class Task {
 class Tasks {
   
   exec: Task;
-  node: Task;
+  call: Task;
   tsc: Task;
   test: Task;
   rmdir: Task;
@@ -153,7 +153,7 @@ class Tasks {
       }
     );
     
-    this.node = new Task(
+    this.call = new Task(
       tasks,
       "Call a node script.",
       [
@@ -164,7 +164,12 @@ class Tasks {
           return TaskResult.Error( "Error: no test script specified" );
         }
         else {
-          return tasks.exec.run( bee, "node " + config.file );
+          const path = require( 'path' );
+          let testScriptFile = path.resolve( config.file );
+          let testScript = require( testScriptFile );
+          testScript.test( bee );
+          return TaskResult.OK();
+          //return tasks.exec.run( bee, "node " + config.file );
         }
       }
     );
@@ -177,15 +182,21 @@ class Tasks {
         new Parameter( "test", "Name of test", "string", false )
       ],
       function( bee: Bee, config ) {
-        if( !config.test ) {
-          return TaskResult.Error( "Error: no test name given." );
+        if( !config || !config.file ) {
+          return TaskResult.Error( "Error: no test script specified" );
         }
-        let test = project.tests[ config.test ];
-        if( !test ) {
-          return TaskResult.Error( "Error: no test name '" + config.test + "' found" );
+        else {
+          return tasks.call.run( bee, config );
         }
-        test.code( bee )
-        return TaskResult.Message( "Test result not yet implemented" );
+        // if( !config.test ) {
+        //   return TaskResult.Error( "Error: no test name given." );
+        // }
+        // let test = project.tests[ config.test ];
+        // if( !test ) {
+        //   return TaskResult.Error( "Error: no test name '" + config.test + "' found" );
+        // }
+        // test.code( bee )
+        // return TaskResult.Message( "Test result not yet implemented" );
       }
     );
     

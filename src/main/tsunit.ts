@@ -1,4 +1,4 @@
-export class TestRun {
+class TestRun {
 
   name: string;
   setupCode: Function;

@@ -227,6 +227,7 @@ class Tasks {
 
 class Bee {
   commandLine: CommandLine;
+  testRun: TestRun;
   constructor( commandLine: CommandLine ) {
     this.commandLine = commandLine;
   }
@@ -258,6 +259,12 @@ class Bee {
         console.log( result.message );
       }
     }
+  }
+  getTestRun() : TestRun {
+    if( !this.testRun ) {
+      this.testRun = new TestRun( "Unnamed test", false );
+    }
+    return this.testRun;
   }
 
 }

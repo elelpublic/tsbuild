@@ -8,7 +8,11 @@ exports.setup = function( project ) {
     description: "Build the project, create distribution files.",
     depends: [ "test" ],
     code: function( bee ) {
-      bee.tasks.tsc.run( bee, { outFile: "target/bee", files: [ "src/main/tasks.ts", "src/main/bee.ts" ] });
+      bee.tasks.tsc.run( bee, { outFile: "target/bee", files: [ 
+        "src/main/tsunit.ts",
+        "src/main/tasks.ts", 
+        "src/main/bee.ts" 
+      ] });
 //      bee.tsc.run(  bee, { file: "src/*.ts", outDir: "target" } );
     }
   };

@@ -1,5 +1,41 @@
 exports.test = function( bee ) {
-  console.log( "MyMath.sqrt OK: " + bee );
+
+  let testRun = bee.getTestRun();
+
+  //let s: Superclass;
+
+  // setup code will be performed before every test
+  testRun.setup( () => {
+    //s = new Superclass();
+  });
+  
+  // cleanup code will be performed after every test
+  testRun.cleanup( () => {
+    //s.shutdown();
+  });
+  
+  // a test has a name and may contain a number of assertions
+  testRun.test( "test initialization", () => {
+  
+    testRun.assertTrue( "s should be empty", false );
+    testRun.assertEqual( "size is 0 initially", 0, 0 );
+    // testRun.assertNull( "result should be null", s.getResult() );
+    // testRun.assertNotNull( "name should not be null", s.getName() );
+  
+  });
+  
+  // a test has a name and may contain a number of assertions
+  testRun.test( "test exception", () => {
+
+    throw "Error in test code"
+  
+  });
+
+  // ... add more tests here
+  
+  // finally print some summary information about the tests
+  testRun.logSummary();
+
 }
 
 

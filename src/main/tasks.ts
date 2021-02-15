@@ -174,7 +174,6 @@ class Tasks {
       }
     );
     
-    
     this.test = new Task(
       tasks,
       "Perform unit tests.",
@@ -197,15 +196,6 @@ class Tasks {
             return TaskResult.OK();
           }
         }
-        // if( !config.test ) {
-        //   return TaskResult.Error( "Error: no test name given." );
-        // }
-        // let test = project.tests[ config.test ];
-        // if( !test ) {
-        //   return TaskResult.Error( "Error: no test name '" + config.test + "' found" );
-        // }
-        // test.code( bee )
-        // return TaskResult.Message( "Test result not yet implemented" );
       }
     );
     

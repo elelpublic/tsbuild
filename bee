@@ -393,15 +393,6 @@ var Tasks = /** @class */ (function () {
                     return TaskResult.OK();
                 }
             }
-            // if( !config.test ) {
-            //   return TaskResult.Error( "Error: no test name given." );
-            // }
-            // let test = project.tests[ config.test ];
-            // if( !test ) {
-            //   return TaskResult.Error( "Error: no test name '" + config.test + "' found" );
-            // }
-            // test.code( bee )
-            // return TaskResult.Message( "Test result not yet implemented" );
         });
         this.rmdir = new Task(tasks, "Delete a directory and all its content.", [
             new Parameter("dir", "Name of a directory below the project directory.", "string", false)
@@ -586,7 +577,12 @@ else {
 console.log("");
 console.log("# ------------------------------------------------------------------------------");
 if (project.error) {
-    console.log("# Sorry. Bee failed.");
+    if (commandLine.nofail) {
+        console.log("# There were failures, but bee finished because --nofail was set.");
+    }
+    else {
+        console.log("# Sorry. Bee failed.");
+    }
 }
 else {
     console.log("# Yeah! Bee finished its work succesfully.");

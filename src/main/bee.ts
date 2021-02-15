@@ -151,7 +151,12 @@ else {
 console.log( "" );
 console.log( "# ------------------------------------------------------------------------------" );
 if( project.error ) {
-  console.log( "# Sorry. Bee failed." );
+  if( commandLine.nofail ) {
+    console.log( "# There were failures, but bee finished because --nofail was set." );
+  }
+  else {
+    console.log( "# Sorry. Bee failed." );
+  }
 }
 else {
   console.log( "# Yeah! Bee finished its work succesfully." );

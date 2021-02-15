@@ -59,7 +59,7 @@ class Test {
  * The description of the current software project built with bee
  */
 class Project {
-  name: string;
+  name: "Unitialized";
   description: string;
   error = false;
   errorMessage: string;
@@ -87,7 +87,7 @@ console.log( "# ----------------------------------------------------------------
 
 let commandLine = parseCommandLine();
 let bee = new Bee( commandLine );
-let project: Project;
+let project = new Project();
 
 if( commandLine.isEmpty ) {
   console.log( "" );
@@ -150,8 +150,16 @@ else {
 
 console.log( "" );
 console.log( "# ------------------------------------------------------------------------------" );
-console.log( "# Bee finished its work after " + (Date.now() - t0) + " millis." );
+if( project.error ) {
+  console.log( "# Sorry. Bee failed." );
+}
+else {
+  console.log( "# Yeah! Bee finished its work succesfully." );
+}
+console.log( "# Time " + (Date.now() - t0) + " millis." );
 console.log( "# ==============================================================================" );
+
+process.exit( project.error ? 1 : 0 ); 
 
 // * * * ----------------------------------------------
 

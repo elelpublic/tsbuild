@@ -186,7 +186,16 @@ class Tasks {
           return TaskResult.Error( "Error: no test script specified" );
         }
         else {
-          return tasks.call.run( bee, config );
+          let result = tasks.call.run( bee, config );
+          if( !result.ok ) {
+            return result;
+          }
+          if( !bee.getTestRun().getSummary().allOk() ) {
+            return TaskResult.Error( "Some tests failed" );
+          }
+          else {
+            return TaskResult.OK();
+          }
         }
         // if( !config.test ) {
         //   return TaskResult.Error( "Error: no test name given." );
@@ -245,7 +254,7 @@ class Bee {
       else {
         throw message;
       }
-  }
+    }
     else if( result.warning ) {
       if( result.message ) {
         console.log( result.message );

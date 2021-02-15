@@ -55,22 +55,6 @@ exports.setup = function( project ) {
     }
   };
 
-  project.targets[ "play" ] = {
-    description: "Play around with new features.",
-    depends: [],
-    code: function( bee ) {
-      console.log( "play" );
-      bee.run( bee.tasks.tsc.run( bee, { outFile: "target/main.js", files: [ "src/person.ts", "src/main.ts" ] }) );
-    }
-  };
-
-  // project.tests[ "testMath" ] = {
-  //   description: "Test the math class.",
-  //   code: function( bee ) {
-  //     console.log( "This is a test, bee: " + bee );
-  //   }
-  // }
-
 }
 
 

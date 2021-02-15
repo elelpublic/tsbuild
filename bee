@@ -382,7 +382,16 @@ var Tasks = /** @class */ (function () {
                 return TaskResult.Error("Error: no test script specified");
             }
             else {
-                return tasks.call.run(bee, config);
+                var result = tasks.call.run(bee, config);
+                if (!result.ok) {
+                    return result;
+                }
+                if (!bee.getTestRun().getSummary().allOk()) {
+                    return TaskResult.Error("Some tests failed");
+                }
+                else {
+                    return TaskResult.OK();
+                }
             }
             // if( !config.test ) {
             //   return TaskResult.Error( "Error: no test name given." );
@@ -528,7 +537,7 @@ console.log("                      * to build and to serve *");
 console.log("# ------------------------------------------------------------------------------");
 var commandLine = parseCommandLine();
 var bee = new Bee(commandLine);
-var project;
+var project = new Project();
 if (commandLine.isEmpty) {
     console.log("");
     console.log("Use 'bee -h' to show help.");
@@ -576,8 +585,15 @@ else {
 }
 console.log("");
 console.log("# ------------------------------------------------------------------------------");
-console.log("# Bee finished its work after " + (Date.now() - t0) + " millis.");
+if (project.error) {
+    console.log("# Sorry. Bee failed.");
+}
+else {
+    console.log("# Yeah! Bee finished its work succesfully.");
+}
+console.log("# Time " + (Date.now() - t0) + " millis.");
 console.log("# ==============================================================================");
+process.exit(project.error ? 1 : 0);
 // * * * ----------------------------------------------
 function runTarget(targetName, alreadyCalled, project, parentTargetName) {
     var target = project.targets[targetName];

@@ -575,7 +575,7 @@ else {
                 for (var i = 0; i < commandLine.targets.length; i++) {
                     var targetName = commandLine.targets[i];
                     runTarget(targetName, alreadyCalled, project, null);
-                    if (project.error) {
+                    if (project.error && project.errorMessage) {
                         console.log(project.errorMessage);
                     }
                 }

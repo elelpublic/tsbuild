@@ -134,7 +134,7 @@ else {
       
           let targetName = commandLine.targets[ i ];
           runTarget( targetName, alreadyCalled, project, null );
-          if( project.error ) {
+          if( project.error && project.errorMessage ) {
             console.log( project.errorMessage );
           }
       

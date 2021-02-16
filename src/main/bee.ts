@@ -76,7 +76,7 @@ let t0 = Date.now();
 
 console.log( "# ==============================================================================" );
 console.log( "" );
-console.log( "                . - *         ___                         _" );
+console.log( "                . - .         ___                         _" );
 console.log( "              *       .       \\__))   //                 | |__   ___  ___" );
 console.log( "           .            * .  <((_(()(o_o)                |  _ \\ / _ \\/ _ \\" );
 console.log( "  .      *                    //  |\\                     | |_) |  __/  __/" );
@@ -150,6 +150,7 @@ else {
 
 console.log( "" );
 console.log( "# ------------------------------------------------------------------------------" );
+console.log( "# Runtime " + (Date.now() - t0) + " ms" );
 let returnCode = 0;
 if( project.error ) {
   if( commandLine.nofail ) {
@@ -163,7 +164,6 @@ if( project.error ) {
 else {
   console.log( "# SUCCESS: Yeah! Bee finished its work succesfully." );
 }
-console.log( "# Time " + (Date.now() - t0) + " millis." );
 console.log( "# ==============================================================================" );
 
 process.exit( returnCode ); 
@@ -186,7 +186,7 @@ function runTarget( targetName: string, alreadyCalled: Object, project: Project,
       for( let i = 0; i < target.depends.length; i++ ) {
         let dependencyName = target.depends[ i ];
         runTarget( dependencyName, alreadyCalled, project, targetName );
-        if( project.error ) {
+        if( project.error && !commandLine.nofail ) {
           return;
         }
       }

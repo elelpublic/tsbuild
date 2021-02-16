@@ -150,21 +150,23 @@ else {
 
 console.log( "" );
 console.log( "# ------------------------------------------------------------------------------" );
+let returnCode = 0;
 if( project.error ) {
   if( commandLine.nofail ) {
-    console.log( "# There were failures, but bee finished because --nofail was set." );
+    console.log( "# SUCCESS: There were some failures, but --nofail was set. So yeah, I guess." );
   }
   else {
-    console.log( "# Sorry. Bee failed." );
+    console.log( "# FAILED: Sorry. Bee failed." );
+    returnCode = 1;
   }
 }
 else {
-  console.log( "# Yeah! Bee finished its work succesfully." );
+  console.log( "# SUCCESS: Yeah! Bee finished its work succesfully." );
 }
 console.log( "# Time " + (Date.now() - t0) + " millis." );
 console.log( "# ==============================================================================" );
 
-process.exit( project.error ? 1 : 0 ); 
+process.exit( returnCode ); 
 
 // * * * ----------------------------------------------
 

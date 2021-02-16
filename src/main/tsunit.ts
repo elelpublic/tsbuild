@@ -1,3 +1,8 @@
+/**
+ * A test run is one execution of multiple tests each with multiple assertions.
+ * It will create a summary about all the tests and measure the runtime.
+ * 
+ */
 class TestRun {
 
   name: string;
@@ -69,6 +74,14 @@ class TestRun {
     this.cleanupCode = cleanupCode;
   }
 
+  /**
+   * Perform the test of one feature or story.
+   * Perform setup code before the test and cleanup code after the test.
+   * 
+   * @param testName Name of the feature or story or test
+   * @param testCode The code containing the assertions
+   * 
+   */
   test( testName: string, testCode: Function ) {
 
     this.sums.countTest();
@@ -77,7 +90,6 @@ class TestRun {
     this.log.log( "Test: " + testName );
 
     let result = new TestResult( testName );
-    this.log.addResult( result );
 
     result.start();
 
@@ -138,11 +150,6 @@ class Log {
   quiet = false;
   logSuccesses = false;
   text = "";
-  results = [];
-
-  addResult( result: TestResult ) {
-    this.results.push( this.results );
-  }
 
   log( line: string ) {
     if( !this.quiet ) {

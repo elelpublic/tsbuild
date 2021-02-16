@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+/**
+ * A test run is one execution of multiple tests each with multiple assertions.
+ * It will create a summary about all the tests and measure the runtime.
+ *
+ */
 var TestRun = /** @class */ (function () {
     function TestRun(name, quiet) {
         if (quiet === void 0) { quiet = false; }
@@ -58,13 +63,20 @@ var TestRun = /** @class */ (function () {
     TestRun.prototype.cleanup = function (cleanupCode) {
         this.cleanupCode = cleanupCode;
     };
+    /**
+     * Perform the test of one feature or story.
+     * Perform setup code before the test and cleanup code after the test.
+     *
+     * @param testName Name of the feature or story or test
+     * @param testCode The code containing the assertions
+     *
+     */
     TestRun.prototype.test = function (testName, testCode) {
         this.sums.countTest();
         this.log.log("");
         this.log.log("--------------------------------------------");
         this.log.log("Test: " + testName);
         var result = new TestResult(testName);
-        this.log.addResult(result);
         result.start();
         var tt0 = new Date().getTime();
         try {
@@ -114,11 +126,7 @@ var Log = /** @class */ (function () {
         this.quiet = false;
         this.logSuccesses = false;
         this.text = "";
-        this.results = [];
     }
-    Log.prototype.addResult = function (result) {
-        this.results.push(this.results);
-    };
     Log.prototype.log = function (line) {
         if (!this.quiet) {
             console.log(line);
@@ -419,6 +427,7 @@ var Bee = /** @class */ (function () {
         this.tasks = new Tasks();
         this.run = function (result) {
             if (result.error) {
+                project.error = true;
                 var message_2 = "Error";
                 if (result.message) {
                     message_2 = result.message;
@@ -576,20 +585,22 @@ else {
 }
 console.log("");
 console.log("# ------------------------------------------------------------------------------");
+var returnCode = 0;
 if (project.error) {
     if (commandLine.nofail) {
-        console.log("# There were failures, but bee finished because --nofail was set.");
+        console.log("# SUCCESS: There were some failures, but --nofail was set. So yeah, I guess.");
     }
     else {
-        console.log("# Sorry. Bee failed.");
+        console.log("# FAILED: Sorry. Bee failed.");
+        returnCode = 1;
     }
 }
 else {
-    console.log("# Yeah! Bee finished its work succesfully.");
+    console.log("# SUCCESS: Yeah! Bee finished its work succesfully.");
 }
 console.log("# Time " + (Date.now() - t0) + " millis.");
 console.log("# ==============================================================================");
-process.exit(project.error ? 1 : 0);
+process.exit(returnCode);
 // * * * ----------------------------------------------
 function runTarget(targetName, alreadyCalled, project, parentTargetName) {
     var target = project.targets[targetName];

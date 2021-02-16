@@ -233,6 +233,7 @@ class Bee {
   tasks = new Tasks();
   run = function( result: TaskResult ) {
     if( result.error ) {
+      project.error = true;
       let message = "Error";
       if( result.message ) {
         message = result.message;

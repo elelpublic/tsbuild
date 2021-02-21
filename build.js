@@ -12,6 +12,7 @@ exports.setup = function( project ) {
         "src/main/tsunit.ts",
         "src/main/testresult.ts",
         "src/main/tasks.ts", 
+        "src/main/cli.ts",
         "src/main/bee.ts" 
       ] } ) );
     }

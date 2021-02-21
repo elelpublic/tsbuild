@@ -576,19 +576,8 @@ var Bee = /** @class */ (function () {
     return Bee;
 }());
 /**
- * --------------------------------------------------------------------------------------
+ * Command Line Interface
  *
- * Why is this file here?
- *
- * Answer: bee is an antlike build system to perform some necessary tasks in this
- * project. This file contains the complete executable code for bee. Only nodejs is
- * required to run bee.
- *
- * The targets to be achieved in this project are defined in the file:
- *
- * build.js
- *
- * --------------------------------------------------------------------------------------
  */
 var CommandLine = /** @class */ (function () {
     function CommandLine() {
@@ -606,6 +595,79 @@ var CommandLine = /** @class */ (function () {
     }
     return CommandLine;
 }());
+/**
+ * Parse command line arguments in to an object for easy access
+ *
+ */
+function parseCommandLine() {
+    var commandLine = new CommandLine();
+    var currentParamName = null;
+    for (var i = 2; i < process.argv.length; i++) {
+        commandLine.isEmpty = false;
+        var arg = process.argv[i];
+        if (currentParamName == null) {
+            if (arg == "-f") {
+                currentParamName = "targetFile";
+                commandLine.targets = [];
+            }
+            else if (arg == "-d") {
+                commandLine.runDefaultTarget = true;
+            }
+            else if (arg == "-p") {
+                commandLine.showProjectInformation = true;
+            }
+            else if (arg == "-pp") {
+                commandLine.showProjectInformation = true;
+                commandLine.showDependencies = true;
+            }
+            else if (arg == "-ppp") {
+                commandLine.showProjectInformation = true;
+                commandLine.showDependencies = true;
+                commandLine.showInternalTargets = true;
+            }
+            else if (arg == "--nodeps") {
+                commandLine.nodeps = true;
+            }
+            else if (arg == "--nofail") {
+                commandLine.nofail = true;
+            }
+            else if (arg == "-v") {
+                commandLine.verbose = true;
+            }
+            else if (arg == "-t") {
+                commandLine.listTasks = true;
+                currentParamName = "describeTask";
+            }
+            else if (arg == "-h") {
+                commandLine.showHelp = true;
+            }
+            else {
+                commandLine.targets.push(arg);
+            }
+        }
+        else {
+            commandLine[currentParamName] = arg;
+            currentParamName = null;
+        }
+    }
+    return commandLine;
+}
+/**
+ * --------------------------------------------------------------------------------------
+ *
+ * Why is this file here?
+ *
+ * Answer: bee is an antlike build system to perform some necessary tasks in this
+ * project. This file contains the complete executable code for bee. Only nodejs is
+ * required to run bee.
+ *
+ * The targets to be achieved in this project are defined in the file:
+ *
+ * build.js
+ *
+ * --------------------------------------------------------------------------------------
+ */
+// classes, types, interfaces
 /**
  * A target defines a step in the project build process
  */
@@ -897,63 +959,6 @@ function listTasks(taskName) {
         console.log("");
         console.log("bee -t <taskname>");
     }
-}
-/**
- * Parse command line arguments in to an object for easy access
- *
- */
-function parseCommandLine() {
-    var commandLine = new CommandLine();
-    var currentParamName = null;
-    for (var i = 2; i < process.argv.length; i++) {
-        commandLine.isEmpty = false;
-        var arg = process.argv[i];
-        if (currentParamName == null) {
-            if (arg == "-f") {
-                currentParamName = "targetFile";
-                commandLine.targets = [];
-            }
-            else if (arg == "-d") {
-                commandLine.runDefaultTarget = true;
-            }
-            else if (arg == "-p") {
-                commandLine.showProjectInformation = true;
-            }
-            else if (arg == "-pp") {
-                commandLine.showProjectInformation = true;
-                commandLine.showDependencies = true;
-            }
-            else if (arg == "-ppp") {
-                commandLine.showProjectInformation = true;
-                commandLine.showDependencies = true;
-                commandLine.showInternalTargets = true;
-            }
-            else if (arg == "--nodeps") {
-                commandLine.nodeps = true;
-            }
-            else if (arg == "--nofail") {
-                commandLine.nofail = true;
-            }
-            else if (arg == "-v") {
-                commandLine.verbose = true;
-            }
-            else if (arg == "-t") {
-                commandLine.listTasks = true;
-                currentParamName = "describeTask";
-            }
-            else if (arg == "-h") {
-                commandLine.showHelp = true;
-            }
-            else {
-                commandLine.targets.push(arg);
-            }
-        }
-        else {
-            commandLine[currentParamName] = arg;
-            currentParamName = null;
-        }
-    }
-    return commandLine;
 }
 /**
  * Load the build.js (or alternative file) of target

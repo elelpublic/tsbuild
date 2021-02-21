@@ -1,6 +1,9 @@
 # project specific
 target
 
+# macos
+.DS_Store
+
 # Logs
 logs
 *.log

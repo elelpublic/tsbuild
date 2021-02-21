@@ -11,7 +11,7 @@ class TestRun {
   log = new Log();
   sums = new Summary();
   results: Array<TestResult> = [];
-  newLogging = true;
+  newLogging = !commandLine.classicLogging;
   currentTest: TestResult;
 
   constructor( name: string, quiet: boolean = false ) {
@@ -194,12 +194,11 @@ class TestRun {
   }
 
   logSummary() {
-    if( !this.newLogging ) {
-      this.sums.log( this.log );
-    }
-    else {
+    if( this.newLogging ) {
       for( let i = 0; i < this.results.length; i++ ) {
         let result = this.results[ i ];
+        console.log( "" );
+        console.log( "--------------------------------------------------------" );
         console.log( "Test " + i + " " + result.testName );
         console.log( "runtime: " + result.runTime + " ms" );
         console.log( "result: " + result.status );
@@ -212,6 +211,7 @@ class TestRun {
         }
       }
     }
+    this.sums.log( this.log );
   }
 
 }

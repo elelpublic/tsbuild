@@ -10,12 +10,17 @@ class TestRun {
   cleanupCode: Function;
   log = new Log();
   sums = new Summary();
+  results: Array<TestResult> = [];
+  newLogging = false;
+  currentTest: TestResult;
 
   constructor( name: string, quiet: boolean = false ) {
     this.name = name;
     this.log.setQuiet( quiet );
-    this.log.log( "\n============================================" );
-    this.log.log( "Run: " + name );
+    if( !this.newLogging ) {
+      this.log.log( "\n============================================" );
+      this.log.log( "Run: " + name );  
+    }
   }
 
   getLog(): Log {
@@ -23,47 +28,83 @@ class TestRun {
   }
 
   assertTrue( description: string, actual : boolean ) : void {
+    let status = Status.Untested;
+    let message = description + ", expected: true, actual: " + actual;
     if( actual ) {
-      this.log.logOk( "OK: " + description );
+      let status = Status.Ok;
+      if( !this.newLogging ) {
+        this.log.logOk( "OK: " + message );
+      }
       this.sums.addSuccess();
     }
     else {
-      this.log.logFailure( "Failed: " + description );
+      let status = Status.Failed;
+      if( !this.newLogging ) {
+        this.log.logFailure( "Failed: " + message );
+      }
       this.sums.addFailure();
     }  
+    this.currentTest.addAssertionResult( status, "true", message );
   }
   
   assertEqual( description: string, expected: any, actual : any ) : void {
+    let status = Status.Untested;
+    let message = description + ", expected: " + expected + ", actual: " + actual;
     if( expected == actual ) {
-      this.log.logOk( "OK: " + description );
+      status = Status.Ok;
+      if( !this.newLogging ) {
+        this.log.logOk( "OK: " + message );
+      }
       this.sums.addSuccess();
     }
     else {
-      this.log.logFailure( "Failed: " + description + ", expected: " + expected + ", actual: " + actual );
+      status = Status.Failed;
+      if( !this.newLogging ) {
+        this.log.logFailure( "Failed: " + message );
+      }
       this.sums.addFailure();
     }  
+    this.currentTest.addAssertionResult( status, "equal", message );
   }
   
   assertNull( description: string, value: any ) : void {
+    let status = Status.Untested;
+    let message = description + ", expected null, actual: " + value;
     if( value == null ) {
-      this.log.logOk( "OK: " + description );
+      status = Status.Ok;
+      if( !this.newLogging ) {
+        this.log.logOk( "OK: " + message );
+      }
       this.sums.addSuccess();
     }
     else {
-      this.log.logFailure( "Failed: " + description + ", expected: null, actual: " + value );
+      status = Status.Failed;
+      if( !this.newLogging ) {
+        this.log.logFailure( "Failed: " + description + ", expected: null, actual: " + value );
+      }
       this.sums.addFailure();
     }  
+    this.currentTest.addAssertionResult( status, "null", message );
   }
 
   assertNotNull( description: string, value: any ) : void {
+    let status = Status.Untested;
+    let message = description + ", expected not null, actual: " + value;
     if( value != null ) {
-      this.log.logOk( "OK: " + description );
+      status = Status.Ok;
+      if( !this.newLogging ) {
+        this.log.logOk( "OK: " + message );
+      }
       this.sums.addSuccess();
     }
     else {
-      this.log.logFailure( "Failed: " + description + ", expected: not null, actual: null" );
+      status = Status.Failed;
+      if( !this.newLogging ) {
+        this.log.logFailure( "Failed: " + message );
+      }
       this.sums.addFailure();
     }  
+    this.currentTest.addAssertionResult( status, "notnull", message );
   }
 
   setup( setupCode: Function ) {
@@ -85,13 +126,16 @@ class TestRun {
   test( testName: string, testCode: Function ) {
 
     this.sums.countTest();
-    this.log.log( "" );
-    this.log.log( "--------------------------------------------" );
-    this.log.log( "Test: " + testName );
+    if( !this.newLogging ) {
+      this.log.log( "" );
+      this.log.log( "--------------------------------------------" );
+      this.log.log( "Test: " + testName );
+    }
 
-    let result = new TestResult( testName );
+    this.currentTest = new TestResult( testName );
+    this.results.push( this.currentTest );
 
-    result.start();
+    this.currentTest.start();
 
     let tt0 = new Date().getTime();
 
@@ -103,9 +147,11 @@ class TestRun {
         }
       }
       catch( ex ) {
-        this.log.logError( "Error in setup: " + testName + " " + ex );
+        if( !this.newLogging ) {
+          this.log.logError( "Error in setup: " + testName + " " + ex );
+        }
         this.sums.addError();
-        result.logError( "Error in setup: " + ex );
+        this.currentTest.logError( "Error in setup: " + ex );
         return;
       }
 
@@ -113,9 +159,11 @@ class TestRun {
         testCode();
       }
       catch( ex ) {
-        this.log.logError( "Error: " + testName + " " + ex );
+        if( !this.newLogging ) {
+          this.log.logError( "Error: " + testName + " " + ex );
+        }
         this.sums.addError();
-        result.logError( testName + " " + ex );
+        this.currentTest.logError( "Error in test: " + ex );
       }
 
       try {
@@ -124,13 +172,19 @@ class TestRun {
         }
       }
       catch( ex ) {
-        this.log.log( "Error in cleanup: " + testName + " " + ex );
-        result.logError( "Error in cleanup: " + " " + ex );
+        if( !this.newLogging ) {
+          this.log.log( "Error in cleanup: " + testName + " " + ex );
+        }
+        this.currentTest.logError( "Error in cleanup: " + ex );
       }
 
     }
     finally {
-      this.log.log( "Runtime " + (new Date().getTime() - tt0) + " ms" );
+      this.currentTest.stop();
+      if( !this.newLogging ) {
+        this.log.log( "Runtime " + (new Date().getTime() - tt0) + " ms" );
+      }
+      this.currentTest = null;
     }
 
   }
@@ -140,7 +194,20 @@ class TestRun {
   }
 
   logSummary() {
-    this.sums.log( this.log );
+    if( !this.newLogging ) {
+      this.sums.log( this.log );
+    }
+    else {
+      for( let i = 0; i < this.results.length; i++ ) {
+        let result = this.results[ i ];
+        console.log( "Test " + i + " " + result.testName );
+        console.log( "runtime: " + result.runTime );
+        console.log( "result: " + result.status );
+        if( result.message ) {
+          console.log( result.message );
+        }
+      }
+    }
   }
 
 }
@@ -182,47 +249,6 @@ class Log {
 
   getText() {
     return this.text;
-  }
-
-}
-
-class TestResult {
-
-  testName: string;
-  startTime: number;
-  runTime: number;
-  status = "NEW";
-
-  constructor( testName: string ) {
-    this.testName = testName;
-  }
-
-  /**
-   * Start test, record time
-   * 
-   */
-  start() {
-    this.startTime = new Date().getTime();
-    this.status = "RUNNING";
-  }
-
-  /**
-   * Stop test, record time
-   * 
-   */
-  stop() {
-    this.runTime = new Date().getTime() - this.startTime;
-  }
-
-  /**
-   * Mark test as error
-   * 
-   * @param message Error message
-   * 
-   */
-  logError( message: string) {
-    this.stop();
-    this.status = "ERROR";
   }
 
 }

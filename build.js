@@ -10,10 +10,10 @@ exports.setup = function( project ) {
     code: function( bee ) {
       bee.tasks.tsc.run( bee, { outFile: "target/bee", files: [ 
         "src/main/tsunit.ts",
+        "src/main/testresult.ts",
         "src/main/tasks.ts", 
         "src/main/bee.ts" 
       ] });
-//      bee.tsc.run(  bee, { file: "src/*.ts", outDir: "target" } );
     }
   };
 
@@ -32,8 +32,8 @@ exports.setup = function( project ) {
     depends: [],
     internal: true,
     code: function( bee ) {
-      bee.run( bee.tasks.tsc.run( bee, { file: "src/tests/DemoCode.ts", outDir: "target" }) );
-      bee.run( bee.tasks.exec.run( bee, { command: "cp src/tests/DemoTest.js target" }) );
+      bee.run( bee.tasks.tsc.run( bee, { file: "src/test/DemoCode.ts", outDir: "target" }) );
+      bee.run( bee.tasks.exec.run( bee, { command: "cp src/test/DemoTest.js target" }) );
     }
   };
 
@@ -41,8 +41,6 @@ exports.setup = function( project ) {
     description: "Run unit tests",
     depends: [ "compileTests" ],
     code: function( bee ) {
-      //bee.exec.run( "src/tests/alltests.js" );
-      //bee.run( bee.tasks.test.run( bee, { test: "testMath" }) );
       bee.run( bee.tasks.test.run( bee, { file: "target/DemoTest.js" }) );
     }
   };

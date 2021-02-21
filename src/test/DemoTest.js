@@ -1,6 +1,7 @@
 exports.test = function( bee ) {
 
   let testRun = bee.getTestRun();
+  //testRun.newLogging = true;
 
   //let s: Superclass;
 
@@ -15,7 +16,7 @@ exports.test = function( bee ) {
   });
   
   // a test has a name and may contain a number of assertions
-  testRun.test( "test initialization", () => {
+  testRun.test( "Initialization", () => {
   
     testRun.assertTrue( "s should be empty", false );
     testRun.assertEqual( "size is 0 initially", 0, 0 );
@@ -25,7 +26,7 @@ exports.test = function( bee ) {
   });
   
   // a test has a name and may contain a number of assertions
-  testRun.test( "test exception", () => {
+  testRun.test( "Exception", () => {
 
     throw "Error in test code"
   

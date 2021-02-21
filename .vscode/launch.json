@@ -23,7 +23,7 @@
         "<node_internals>/**"
       ],
       "program": "${workspaceFolder}/bee"
-      , "args": [ "--nofail", "install" ]
+      , "args": [ "test" ]
     }
   ]
 }

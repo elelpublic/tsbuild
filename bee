@@ -9,53 +9,93 @@ var TestRun = /** @class */ (function () {
         if (quiet === void 0) { quiet = false; }
         this.log = new Log();
         this.sums = new Summary();
+        this.results = [];
+        this.newLogging = false;
         this.name = name;
         this.log.setQuiet(quiet);
-        this.log.log("\n============================================");
-        this.log.log("Run: " + name);
+        if (!this.newLogging) {
+            this.log.log("\n============================================");
+            this.log.log("Run: " + name);
+        }
     }
     TestRun.prototype.getLog = function () {
         return this.log;
     };
     TestRun.prototype.assertTrue = function (description, actual) {
+        var status = Status.Untested;
+        var message = description + ", expected: true, actual: " + actual;
         if (actual) {
-            this.log.logOk("OK: " + description);
+            var status_1 = Status.Ok;
+            if (!this.newLogging) {
+                this.log.logOk("OK: " + message);
+            }
             this.sums.addSuccess();
         }
         else {
-            this.log.logFailure("Failed: " + description);
+            var status_2 = Status.Failed;
+            if (!this.newLogging) {
+                this.log.logFailure("Failed: " + message);
+            }
             this.sums.addFailure();
         }
+        this.currentTest.addAssertionResult(status, "true", message);
     };
     TestRun.prototype.assertEqual = function (description, expected, actual) {
+        var status = Status.Untested;
+        var message = description + ", expected: " + expected + ", actual: " + actual;
         if (expected == actual) {
-            this.log.logOk("OK: " + description);
+            status = Status.Ok;
+            if (!this.newLogging) {
+                this.log.logOk("OK: " + message);
+            }
             this.sums.addSuccess();
         }
         else {
-            this.log.logFailure("Failed: " + description + ", expected: " + expected + ", actual: " + actual);
+            status = Status.Failed;
+            if (!this.newLogging) {
+                this.log.logFailure("Failed: " + message);
+            }
             this.sums.addFailure();
         }
+        this.currentTest.addAssertionResult(status, "equal", message);
     };
     TestRun.prototype.assertNull = function (description, value) {
+        var status = Status.Untested;
+        var message = description + ", expected null, actual: " + value;
         if (value == null) {
-            this.log.logOk("OK: " + description);
+            status = Status.Ok;
+            if (!this.newLogging) {
+                this.log.logOk("OK: " + message);
+            }
             this.sums.addSuccess();
         }
         else {
-            this.log.logFailure("Failed: " + description + ", expected: null, actual: " + value);
+            status = Status.Failed;
+            if (!this.newLogging) {
+                this.log.logFailure("Failed: " + description + ", expected: null, actual: " + value);
+            }
             this.sums.addFailure();
         }
+        this.currentTest.addAssertionResult(status, "null", message);
     };
     TestRun.prototype.assertNotNull = function (description, value) {
+        var status = Status.Untested;
+        var message = description + ", expected not null, actual: " + value;
         if (value != null) {
-            this.log.logOk("OK: " + description);
+            status = Status.Ok;
+            if (!this.newLogging) {
+                this.log.logOk("OK: " + message);
+            }
             this.sums.addSuccess();
         }
         else {
-            this.log.logFailure("Failed: " + description + ", expected: not null, actual: null");
+            status = Status.Failed;
+            if (!this.newLogging) {
+                this.log.logFailure("Failed: " + message);
+            }
             this.sums.addFailure();
         }
+        this.currentTest.addAssertionResult(status, "notnull", message);
     };
     TestRun.prototype.setup = function (setupCode) {
         this.setupCode = setupCode;
@@ -73,11 +113,14 @@ var TestRun = /** @class */ (function () {
      */
     TestRun.prototype.test = function (testName, testCode) {
         this.sums.countTest();
-        this.log.log("");
-        this.log.log("--------------------------------------------");
-        this.log.log("Test: " + testName);
-        var result = new TestResult(testName);
-        result.start();
+        if (!this.newLogging) {
+            this.log.log("");
+            this.log.log("--------------------------------------------");
+            this.log.log("Test: " + testName);
+        }
+        this.currentTest = new TestResult(testName);
+        this.results.push(this.currentTest);
+        this.currentTest.start();
         var tt0 = new Date().getTime();
         try {
             try {
@@ -86,18 +129,22 @@ var TestRun = /** @class */ (function () {
                 }
             }
             catch (ex) {
-                this.log.logError("Error in setup: " + testName + " " + ex);
+                if (!this.newLogging) {
+                    this.log.logError("Error in setup: " + testName + " " + ex);
+                }
                 this.sums.addError();
-                result.logError("Error in setup: " + ex);
+                this.currentTest.logError("Error in setup: " + ex);
                 return;
             }
             try {
                 testCode();
             }
             catch (ex) {
-                this.log.logError("Error: " + testName + " " + ex);
+                if (!this.newLogging) {
+                    this.log.logError("Error: " + testName + " " + ex);
+                }
                 this.sums.addError();
-                result.logError(testName + " " + ex);
+                this.currentTest.logError("Error in test: " + ex);
             }
             try {
                 if (this.cleanupCode != null) {
@@ -105,19 +152,38 @@ var TestRun = /** @class */ (function () {
                 }
             }
             catch (ex) {
-                this.log.log("Error in cleanup: " + testName + " " + ex);
-                result.logError("Error in cleanup: " + " " + ex);
+                if (!this.newLogging) {
+                    this.log.log("Error in cleanup: " + testName + " " + ex);
+                }
+                this.currentTest.logError("Error in cleanup: " + ex);
             }
         }
         finally {
-            this.log.log("Runtime " + (new Date().getTime() - tt0) + " ms");
+            this.currentTest.stop();
+            if (!this.newLogging) {
+                this.log.log("Runtime " + (new Date().getTime() - tt0) + " ms");
+            }
+            this.currentTest = null;
         }
     };
     TestRun.prototype.getSummary = function () {
         return this.sums;
     };
     TestRun.prototype.logSummary = function () {
-        this.sums.log(this.log);
+        if (!this.newLogging) {
+            this.sums.log(this.log);
+        }
+        else {
+            for (var i = 0; i < this.results.length; i++) {
+                var result = this.results[i];
+                console.log("Test " + i + " " + result.testName);
+                console.log("runtime: " + result.runTime);
+                console.log("result: " + result.status);
+                if (result.message) {
+                    console.log(result.message);
+                }
+            }
+        }
     };
     return TestRun;
 }());
@@ -154,38 +220,6 @@ var Log = /** @class */ (function () {
         return this.text;
     };
     return Log;
-}());
-var TestResult = /** @class */ (function () {
-    function TestResult(testName) {
-        this.status = "NEW";
-        this.testName = testName;
-    }
-    /**
-     * Start test, record time
-     *
-     */
-    TestResult.prototype.start = function () {
-        this.startTime = new Date().getTime();
-        this.status = "RUNNING";
-    };
-    /**
-     * Stop test, record time
-     *
-     */
-    TestResult.prototype.stop = function () {
-        this.runTime = new Date().getTime() - this.startTime;
-    };
-    /**
-     * Mark test as error
-     *
-     * @param message Error message
-     *
-     */
-    TestResult.prototype.logError = function (message) {
-        this.stop();
-        this.status = "ERROR";
-    };
-    return TestResult;
 }());
 var Summary = /** @class */ (function () {
     function Summary() {
@@ -250,6 +284,64 @@ var Summary = /** @class */ (function () {
         log.log("============================================\n");
     };
     return Summary;
+}());
+var Status;
+(function (Status) {
+    Status[Status["Untested"] = 0] = "Untested";
+    Status[Status["Ok"] = 1] = "Ok";
+    Status[Status["Failed"] = 2] = "Failed";
+    Status[Status["Error"] = 3] = "Error";
+})(Status || (Status = {}));
+var Assertion = /** @class */ (function () {
+    function Assertion(status, assertion, message) {
+        this.status = status;
+        this.assertion = assertion;
+        this.message = message;
+    }
+    return Assertion;
+}());
+var TestResult = /** @class */ (function () {
+    function TestResult(testName) {
+        this.status = "UNTESTED";
+        this.assertions = [];
+        this.testName = testName;
+    }
+    /**
+     * Start test, record time
+     *
+     */
+    TestResult.prototype.start = function () {
+        this.startTime = new Date().getTime();
+        this.status = "OK";
+    };
+    /**
+     * Stop test, record time
+     *
+     */
+    TestResult.prototype.stop = function () {
+        this.runTime = new Date().getTime() - this.startTime;
+    };
+    /**
+     * Mark test as error
+     *
+     * @param message Error message
+     *
+     */
+    TestResult.prototype.logError = function (message) {
+        this.status = "ERROR";
+    };
+    /**
+     * Store an assertion result
+     *
+     * @param status Result status
+     * @param assertion Name of assertion
+     * @param message Description of specific assertion
+     *
+     */
+    TestResult.prototype.addAssertionResult = function (status, assertion, message) {
+        this.assertions.push(new Assertion(status, assertion, message));
+    };
+    return TestResult;
 }());
 /**
  * A parameter defines one unit of input to a task

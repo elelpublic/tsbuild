@@ -10,7 +10,7 @@ var TestRun = /** @class */ (function () {
         this.log = new Log();
         this.sums = new Summary();
         this.results = [];
-        this.newLogging = false;
+        this.newLogging = true;
         this.name = name;
         this.log.setQuiet(quiet);
         if (!this.newLogging) {
@@ -22,17 +22,17 @@ var TestRun = /** @class */ (function () {
         return this.log;
     };
     TestRun.prototype.assertTrue = function (description, actual) {
-        var status = Status.Untested;
+        var status = Status.UNTESTED;
         var message = description + ", expected: true, actual: " + actual;
         if (actual) {
-            var status_1 = Status.Ok;
+            var status_1 = Status.SUCCESS;
             if (!this.newLogging) {
                 this.log.logOk("OK: " + message);
             }
             this.sums.addSuccess();
         }
         else {
-            var status_2 = Status.Failed;
+            var status_2 = Status.FAILED;
             if (!this.newLogging) {
                 this.log.logFailure("Failed: " + message);
             }
@@ -41,17 +41,17 @@ var TestRun = /** @class */ (function () {
         this.currentTest.addAssertionResult(status, "true", message);
     };
     TestRun.prototype.assertEqual = function (description, expected, actual) {
-        var status = Status.Untested;
+        var status = Status.UNTESTED;
         var message = description + ", expected: " + expected + ", actual: " + actual;
         if (expected == actual) {
-            status = Status.Ok;
+            status = Status.SUCCESS;
             if (!this.newLogging) {
                 this.log.logOk("OK: " + message);
             }
             this.sums.addSuccess();
         }
         else {
-            status = Status.Failed;
+            status = Status.FAILED;
             if (!this.newLogging) {
                 this.log.logFailure("Failed: " + message);
             }
@@ -60,17 +60,17 @@ var TestRun = /** @class */ (function () {
         this.currentTest.addAssertionResult(status, "equal", message);
     };
     TestRun.prototype.assertNull = function (description, value) {
-        var status = Status.Untested;
+        var status = Status.UNTESTED;
         var message = description + ", expected null, actual: " + value;
         if (value == null) {
-            status = Status.Ok;
+            status = Status.SUCCESS;
             if (!this.newLogging) {
                 this.log.logOk("OK: " + message);
             }
             this.sums.addSuccess();
         }
         else {
-            status = Status.Failed;
+            status = Status.FAILED;
             if (!this.newLogging) {
                 this.log.logFailure("Failed: " + description + ", expected: null, actual: " + value);
             }
@@ -79,17 +79,17 @@ var TestRun = /** @class */ (function () {
         this.currentTest.addAssertionResult(status, "null", message);
     };
     TestRun.prototype.assertNotNull = function (description, value) {
-        var status = Status.Untested;
+        var status = Status.UNTESTED;
         var message = description + ", expected not null, actual: " + value;
         if (value != null) {
-            status = Status.Ok;
+            status = Status.SUCCESS;
             if (!this.newLogging) {
                 this.log.logOk("OK: " + message);
             }
             this.sums.addSuccess();
         }
         else {
-            status = Status.Failed;
+            status = Status.FAILED;
             if (!this.newLogging) {
                 this.log.logFailure("Failed: " + message);
             }
@@ -177,10 +177,14 @@ var TestRun = /** @class */ (function () {
             for (var i = 0; i < this.results.length; i++) {
                 var result = this.results[i];
                 console.log("Test " + i + " " + result.testName);
-                console.log("runtime: " + result.runTime);
+                console.log("runtime: " + result.runTime + " ms");
                 console.log("result: " + result.status);
                 if (result.message) {
                     console.log(result.message);
+                }
+                for (var a = 0; a < result.assertions.length; a++) {
+                    var assertion = result.assertions[a];
+                    console.log("Assert " + assertion.assertion + ": " + Status[assertion.status] + " " + assertion.message);
                 }
             }
         }
@@ -287,10 +291,10 @@ var Summary = /** @class */ (function () {
 }());
 var Status;
 (function (Status) {
-    Status[Status["Untested"] = 0] = "Untested";
-    Status[Status["Ok"] = 1] = "Ok";
-    Status[Status["Failed"] = 2] = "Failed";
-    Status[Status["Error"] = 3] = "Error";
+    Status[Status["UNTESTED"] = 0] = "UNTESTED";
+    Status[Status["SUCCESS"] = 1] = "SUCCESS";
+    Status[Status["FAILED"] = 2] = "FAILED";
+    Status[Status["ERROR"] = 3] = "ERROR";
 })(Status || (Status = {}));
 var Assertion = /** @class */ (function () {
     function Assertion(status, assertion, message) {
@@ -397,6 +401,9 @@ var Task = /** @class */ (function () {
 var Tasks = /** @class */ (function () {
     function Tasks() {
         var tasks = this;
+        /**
+         * - exec ------------------------------------------------------------------------------------------
+         */
         this.exec = new Task(tasks, "Execute a shell command.", [new Parameter("command", "Complete command line to be executed", "string", false)], function (bee, input) {
             var command;
             if (typeof input === 'string' || input instanceof String) {
@@ -434,6 +441,9 @@ var Tasks = /** @class */ (function () {
             }
             return result;
         });
+        /**
+         * - tsc ------------------------------------------------------------------------------------------
+         */
         this.tsc = new Task(tasks, "Compile typescript source file.", [
             new Parameter("file", "File or wildcard of files to compile", "string", true),
             new Parameter("files", "List of files to compile", "string", true),
@@ -460,6 +470,9 @@ var Tasks = /** @class */ (function () {
             }
             return tasks.exec.run(bee, "tsc" + file + outDir);
         });
+        /**
+         * - call ------------------------------------------------------------------------------------------
+         */
         this.call = new Task(tasks, "Call a node script.", [
             new Parameter("file", "File name of node script", "string", false)
         ], function (bee, config) {
@@ -475,6 +488,9 @@ var Tasks = /** @class */ (function () {
                 //return tasks.exec.run( bee, "node " + config.file );
             }
         });
+        /**
+         * - test ------------------------------------------------------------------------------------------
+         */
         this.test = new Task(tasks, "Perform unit tests.", [
             new Parameter("test", "Name of test", "string", false)
         ], function (bee, config) {
@@ -494,6 +510,9 @@ var Tasks = /** @class */ (function () {
                 }
             }
         });
+        /**
+         * - rmdir ------------------------------------------------------------------------------------------
+         */
         this.rmdir = new Task(tasks, "Delete a directory and all its content.", [
             new Parameter("dir", "Name of a directory below the project directory.", "string", false)
         ], function (bee, config) {

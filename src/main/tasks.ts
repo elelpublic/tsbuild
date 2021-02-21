@@ -72,6 +72,9 @@ class Tasks {
 
     let tasks = this;
 
+    /**
+     * - exec ------------------------------------------------------------------------------------------
+     */
     this.exec = new Task(
 
       tasks,
@@ -121,6 +124,9 @@ class Tasks {
     
     );
     
+    /**
+     * - tsc ------------------------------------------------------------------------------------------
+     */
     this.tsc = new Task(
       tasks,
       "Compile typescript source file.",
@@ -153,6 +159,9 @@ class Tasks {
       }
     );
     
+    /**
+     * - call ------------------------------------------------------------------------------------------
+     */
     this.call = new Task(
       tasks,
       "Call a node script.",
@@ -174,6 +183,9 @@ class Tasks {
       }
     );
     
+    /**
+     * - test ------------------------------------------------------------------------------------------
+     */
     this.test = new Task(
       tasks,
       "Perform unit tests.",
@@ -199,6 +211,9 @@ class Tasks {
       }
     );
     
+    /**
+     * - rmdir ------------------------------------------------------------------------------------------
+     */
     this.rmdir = new Task(
       tasks,
       "Delete a directory and all its content.",

@@ -1,5 +1,5 @@
 enum Status {
-  Untested, Ok, Failed, Error
+  UNTESTED, SUCCESS, FAILED, ERROR
 }
 
 class Assertion {

@@ -6,20 +6,20 @@ exports.setup = function( project ) {
 
   project.targets[ "build" ] = {
     description: "Build the project, create distribution files.",
-    depends: [ "test" ],
+    depends: [ ],
     code: function( bee ) {
-      bee.tasks.tsc.run( bee, { outFile: "target/bee", files: [ 
+      bee.run( bee.tasks.tsc.run( bee, { outFile: "target/bee", files: [ 
         "src/main/tsunit.ts",
         "src/main/testresult.ts",
         "src/main/tasks.ts", 
         "src/main/bee.ts" 
-      ] });
+      ] } ) );
     }
   };
 
   project.targets[ "install" ] = {
     description: "Install new version of bee in this project.",
-    depends: [ "build" ],
+    depends: [ "test" ],
     code: function( bee ) {
       bee.run( bee.tasks.exec.run( bee, { command: "echo 'Will install bee.ts as bee.'" } ) );
       bee.run( bee.tasks.exec.run( bee, { command: "cp target/bee bee" } ) );
@@ -39,7 +39,7 @@ exports.setup = function( project ) {
 
   project.targets[ "test" ] = {
     description: "Run unit tests",
-    depends: [ "compileTests" ],
+    depends: [ "build", "compileTests" ],
     code: function( bee ) {
       bee.run( bee.tasks.test.run( bee, { file: "target/DemoTest.js" }) );
     }

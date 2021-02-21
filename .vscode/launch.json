@@ -8,12 +8,12 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug bee",
+      "name": "Build bee",
       "skipFiles": [
         "<node_internals>/**"
       ],
       "program": "${workspaceFolder}/bee"
-      , "args": [ "-d" ]
+      , "args": [ "build" ]
     },
     {
       "type": "node",

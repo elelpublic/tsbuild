@@ -11,7 +11,7 @@ class TestRun {
   log = new Log();
   sums = new Summary();
   results: Array<TestResult> = [];
-  newLogging = false;
+  newLogging = true;
   currentTest: TestResult;
 
   constructor( name: string, quiet: boolean = false ) {
@@ -28,17 +28,17 @@ class TestRun {
   }
 
   assertTrue( description: string, actual : boolean ) : void {
-    let status = Status.Untested;
+    let status = Status.UNTESTED;
     let message = description + ", expected: true, actual: " + actual;
     if( actual ) {
-      let status = Status.Ok;
+      let status = Status.SUCCESS;
       if( !this.newLogging ) {
         this.log.logOk( "OK: " + message );
       }
       this.sums.addSuccess();
     }
     else {
-      let status = Status.Failed;
+      let status = Status.FAILED;
       if( !this.newLogging ) {
         this.log.logFailure( "Failed: " + message );
       }
@@ -48,17 +48,17 @@ class TestRun {
   }
   
   assertEqual( description: string, expected: any, actual : any ) : void {
-    let status = Status.Untested;
+    let status = Status.UNTESTED;
     let message = description + ", expected: " + expected + ", actual: " + actual;
     if( expected == actual ) {
-      status = Status.Ok;
+      status = Status.SUCCESS;
       if( !this.newLogging ) {
         this.log.logOk( "OK: " + message );
       }
       this.sums.addSuccess();
     }
     else {
-      status = Status.Failed;
+      status = Status.FAILED;
       if( !this.newLogging ) {
         this.log.logFailure( "Failed: " + message );
       }
@@ -68,17 +68,17 @@ class TestRun {
   }
   
   assertNull( description: string, value: any ) : void {
-    let status = Status.Untested;
+    let status = Status.UNTESTED;
     let message = description + ", expected null, actual: " + value;
     if( value == null ) {
-      status = Status.Ok;
+      status = Status.SUCCESS;
       if( !this.newLogging ) {
         this.log.logOk( "OK: " + message );
       }
       this.sums.addSuccess();
     }
     else {
-      status = Status.Failed;
+      status = Status.FAILED;
       if( !this.newLogging ) {
         this.log.logFailure( "Failed: " + description + ", expected: null, actual: " + value );
       }
@@ -88,17 +88,17 @@ class TestRun {
   }
 
   assertNotNull( description: string, value: any ) : void {
-    let status = Status.Untested;
+    let status = Status.UNTESTED;
     let message = description + ", expected not null, actual: " + value;
     if( value != null ) {
-      status = Status.Ok;
+      status = Status.SUCCESS;
       if( !this.newLogging ) {
         this.log.logOk( "OK: " + message );
       }
       this.sums.addSuccess();
     }
     else {
-      status = Status.Failed;
+      status = Status.FAILED;
       if( !this.newLogging ) {
         this.log.logFailure( "Failed: " + message );
       }
@@ -201,10 +201,14 @@ class TestRun {
       for( let i = 0; i < this.results.length; i++ ) {
         let result = this.results[ i ];
         console.log( "Test " + i + " " + result.testName );
-        console.log( "runtime: " + result.runTime );
+        console.log( "runtime: " + result.runTime + " ms" );
         console.log( "result: " + result.status );
         if( result.message ) {
           console.log( result.message );
+        }
+        for( let a = 0; a < result.assertions.length; a++ ) {
+          let assertion = result.assertions[ a ];
+          console.log( "Assert " + assertion.assertion + ": " + Status[ assertion.status ] + " " + assertion.message );
         }
       }
     }

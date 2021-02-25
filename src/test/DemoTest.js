@@ -36,6 +36,12 @@ exports.test = function( bee ) {
   
   // finally print some summary information about the tests
   testRun.logSummary();
+  let config = {
+    type: 1,
+    file: "target/testreport.html",
+    showAssertionResults: true
+  };
+  testRun.report( config );
 
 }
 

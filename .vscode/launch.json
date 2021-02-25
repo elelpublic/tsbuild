@@ -18,6 +18,16 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Install bee",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/bee"
+      , "args": [ "-v", "--nofail", "install" ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Debug bee test",
       "skipFiles": [
         "<node_internals>/**"

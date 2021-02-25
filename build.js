@@ -10,6 +10,7 @@ exports.setup = function( project ) {
     code: function( bee ) {
       bee.run( bee.tasks.tsc.run( bee, { outFile: "target/bee", files: [ 
         "src/main/tsunit.ts",
+        "src/main/reportconfig.ts",
         "src/main/testresult.ts",
         "src/main/tasks.ts", 
         "src/main/cli.ts",

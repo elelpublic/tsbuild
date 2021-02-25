@@ -214,6 +214,114 @@ class TestRun {
     this.sums.log( this.log );
   }
 
+  /**
+   * Create a html report of test results
+   * 
+   */
+  report( config: ReportConfig ) {
+
+    if( config.type == Type.TEXT ) {
+
+      let content = "";
+
+      for( let i = 0; i < this.results.length; i++ ) {
+        let result = this.results[ i ];
+        content += "\n";
+        content += "--------------------------------------------------------\n";
+        content += "Test " + i + " " + result.testName + "\n";
+        content += "runtime: " + result.runTime + " ms\n";
+        content += "result: " + result.status + "\n";
+        if( result.message ) {
+          content += result.message + "\n";
+        }
+        if( config.showAssertionResults ) {
+          for( let a = 0; a < result.assertions.length; a++ ) {
+            let assertion = result.assertions[ a ];
+            content += "Assert " + assertion.assertion + ": " + Status[ assertion.status ] + " " + assertion.message + "\n";
+          }  
+        }
+      }
+      let log = new Log();
+      this.sums.log( log );
+      content += log.getText();
+
+      console.log( content );
+
+    }
+    else if( config.type == Type.HTML ) {
+
+      let content = "<html>\n";
+      content += "<head>\n";
+      content += "<title>\n";
+      content += "Test results for " + this.name;
+      content += "</title>\n";
+      content += "</head>\n";
+      content += "<body>\n";
+      content += "<h1>\n";
+      content += "Test results for " + this.name;
+      content += "</h1>\n";
+
+      content += "<table border=1>\n";
+      content += "<tr>\n";
+      content += "<th>Name</th>\n";
+      content += "<th>Runtime ms</th>\n";
+      content += "<th>Status</th>\n";
+      content += "<th>Successes</th>\n";
+      content += "<th>Failures</th>\n";
+      content += "<th>Errors</th>\n";
+      content += "<th>Untested</th>\n";
+      content += "</tr>\n";
+
+      for( let i = 0; i < this.results.length; i++ ) {
+        let result = this.results[ i ];
+
+        content += "<tr>\n";
+        content += "<th>" + result.testName + "</th>\n";
+        content += "<th>" + result.runTime + "</th>\n";
+        content += "<th>" + result.status + "</th>\n";
+
+        let noAssertions = result.assertions.length;
+        let noSuccesses = 0;
+        let noFailures = 0;
+        let noErrors = 0;
+        let noUntested = 0;
+        for( let a = 0; a < result.assertions.length; a++ ) {
+          let assertion = result.assertions[ a ];
+          if( assertion.status == Status.SUCCESS ) {
+            noSuccesses++;
+          }
+          if( assertion.status == Status.FAILED ) {
+            noFailures++;
+          }
+          if( assertion.status == Status.ERROR ) {
+            noErrors++;
+          }
+          if( assertion.status == Status.UNTESTED ) {
+            noUntested++;
+          }
+
+        }  
+
+        content += "<th>" + noSuccesses + "</th>\n";
+        content += "<th>" + noFailures + "</th>\n";
+        content += "<th>" + noErrors + "</th>\n";
+        content += "<th>" + noUntested + "</th>\n";
+        content += "</tr>\n";
+  
+      }
+
+      content += "</table>\n";
+
+      content += "</body>\n";
+      content += "</html>\n";
+
+      let fs = require( 'fs' );
+      fs.writeFileSync( config.file, content );
+
+    }
+
+  }
+
 }
 
 class Log {

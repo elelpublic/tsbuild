@@ -133,7 +133,9 @@ var TestRun = /** @class */ (function () {
                     this.log.logError("Error in setup: " + testName + " " + ex);
                 }
                 this.sums.addError();
-                this.currentTest.logError("Error in setup: " + ex);
+                //this.currentTest.logError( "Error in setup: " + ex );
+                this.currentTest.status = Status.ERROR;
+                this.currentTest.message = "Error in setup: " + ex;
                 return;
             }
             try {
@@ -144,7 +146,9 @@ var TestRun = /** @class */ (function () {
                     this.log.logError("Error: " + testName + " " + ex);
                 }
                 this.sums.addError();
-                this.currentTest.logError("Error in test: " + ex);
+                // this.currentTest.logError( "Error in test: " + ex );
+                this.currentTest.status = Status.ERROR;
+                this.currentTest.message = "Error in test: " + ex;
             }
             try {
                 if (this.cleanupCode != null) {
@@ -155,7 +159,9 @@ var TestRun = /** @class */ (function () {
                 if (!this.newLogging) {
                     this.log.log("Error in cleanup: " + testName + " " + ex);
                 }
-                this.currentTest.logError("Error in cleanup: " + ex);
+                // this.currentTest.logError( "Error in cleanup: " + ex );
+                this.currentTest.status = Status.ERROR;
+                this.currentTest.message = "Error in clean up: " + ex;
             }
         }
         finally {
@@ -247,7 +253,7 @@ var TestRun = /** @class */ (function () {
                 content += "<tr>\n";
                 content += "<th>" + index + "</th>\n";
                 content += "<th><a href=#a" + index + ">" + result.testName + "</a></th>\n";
-                content += "<th>" + result.status + "</th>\n";
+                content += "<th>" + Status[result.status] + "</th>\n";
                 var noAssertions = result.assertions.length;
                 var noSuccesses = 0;
                 var noFailures = 0;
@@ -436,7 +442,7 @@ var Assertion = /** @class */ (function () {
 }());
 var TestResult = /** @class */ (function () {
     function TestResult(testName) {
-        this.status = "UNTESTED";
+        this.status = Status.UNTESTED;
         this.assertions = [];
         this.testName = testName;
     }
@@ -446,7 +452,7 @@ var TestResult = /** @class */ (function () {
      */
     TestResult.prototype.start = function () {
         this.startTime = new Date().getTime();
-        this.status = "OK";
+        this.status = Status.SUCCESS;
     };
     /**
      * Stop test, record time
@@ -454,15 +460,6 @@ var TestResult = /** @class */ (function () {
      */
     TestResult.prototype.stop = function () {
         this.runTime = new Date().getTime() - this.startTime;
-    };
-    /**
-     * Mark test as error
-     *
-     * @param message Error message
-     *
-     */
-    TestResult.prototype.logError = function (message) {
-        this.status = "ERROR";
     };
     /**
      * Store an assertion result

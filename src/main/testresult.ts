@@ -18,7 +18,7 @@ class TestResult {
   testName: string;
   startTime: number;
   runTime: number;
-  status = "UNTESTED";
+  status = Status.UNTESTED;
   message: string;
   assertions: Array<Assertion> = [];
 
@@ -32,7 +32,7 @@ class TestResult {
    */
   start() {
     this.startTime = new Date().getTime();
-    this.status = "OK";
+    this.status = Status.SUCCESS;
   }
 
   /**
@@ -41,16 +41,6 @@ class TestResult {
    */
   stop() {
     this.runTime = new Date().getTime() - this.startTime;
-  }
-
-  /**
-   * Mark test as error
-   * 
-   * @param message Error message
-   * 
-   */
-  logError( message: string) {
-    this.status = "ERROR";
   }
 
   /**

@@ -151,7 +151,9 @@ class TestRun {
           this.log.logError( "Error in setup: " + testName + " " + ex );
         }
         this.sums.addError();
-        this.currentTest.logError( "Error in setup: " + ex );
+        //this.currentTest.logError( "Error in setup: " + ex );
+        this.currentTest.status = Status.ERROR;
+        this.currentTest.message = "Error in setup: " + ex;
         return;
       }
 
@@ -163,7 +165,9 @@ class TestRun {
           this.log.logError( "Error: " + testName + " " + ex );
         }
         this.sums.addError();
-        this.currentTest.logError( "Error in test: " + ex );
+        // this.currentTest.logError( "Error in test: " + ex );
+        this.currentTest.status = Status.ERROR;
+        this.currentTest.message = "Error in test: " + ex;
       }
 
       try {
@@ -175,7 +179,9 @@ class TestRun {
         if( !this.newLogging ) {
           this.log.log( "Error in cleanup: " + testName + " " + ex );
         }
-        this.currentTest.logError( "Error in cleanup: " + ex );
+        // this.currentTest.logError( "Error in cleanup: " + ex );
+        this.currentTest.status = Status.ERROR;
+        this.currentTest.message = "Error in clean up: " + ex;
       }
 
     }
@@ -282,7 +288,7 @@ class TestRun {
         content += "<tr>\n";
         content += "<th>" + index + "</th>\n";
         content += "<th><a href=#a" + index + ">" + result.testName + "</a></th>\n";
-        content += "<th>" + result.status + "</th>\n";
+        content += "<th>" + Status[ result.status ] + "</th>\n";
 
         let noAssertions = result.assertions.length;
         let noSuccesses = 0;

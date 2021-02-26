@@ -35,13 +35,15 @@ exports.test = function( bee ) {
   // ... add more tests here
   
   // finally print some summary information about the tests
+  let testReport = "target/testreport.html";
   testRun.logSummary();
   let config = {
     type: 1,
-    file: "target/testreport.html",
+    file: testReport,
     showAssertionResults: true
   };
   testRun.report( config );
+  bee.tasks.open.run( bee, { file: "target/testreport.html" });
 
 }
 

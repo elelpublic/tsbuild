@@ -25,14 +25,14 @@ var TestRun = /** @class */ (function () {
         var status = Status.UNTESTED;
         var message = description + ", expected: true, actual: " + actual;
         if (actual) {
-            var status_1 = Status.SUCCESS;
+            status = Status.SUCCESS;
             if (!this.newLogging) {
                 this.log.logOk("OK: " + message);
             }
             this.sums.addSuccess();
         }
         else {
-            var status_2 = Status.FAILED;
+            status = Status.FAILED;
             if (!this.newLogging) {
                 this.log.logFailure("Failed: " + message);
             }
@@ -231,19 +231,22 @@ var TestRun = /** @class */ (function () {
             content += "</h1>\n";
             content += "<table border=1>\n";
             content += "<tr>\n";
+            content += "<th>#</th>\n";
             content += "<th>Name</th>\n";
-            content += "<th>Runtime ms</th>\n";
             content += "<th>Status</th>\n";
+            content += "<th>Assertions</th>\n";
             content += "<th>Successes</th>\n";
             content += "<th>Failures</th>\n";
             content += "<th>Errors</th>\n";
             content += "<th>Untested</th>\n";
+            content += "<th>Runtime</th>\n";
             content += "</tr>\n";
             for (var i = 0; i < this.results.length; i++) {
+                var index = i + 1;
                 var result = this.results[i];
                 content += "<tr>\n";
-                content += "<th>" + result.testName + "</th>\n";
-                content += "<th>" + result.runTime + "</th>\n";
+                content += "<th>" + index + "</th>\n";
+                content += "<th><a href=#a" + index + ">" + result.testName + "</a></th>\n";
                 content += "<th>" + result.status + "</th>\n";
                 var noAssertions = result.assertions.length;
                 var noSuccesses = 0;
@@ -265,13 +268,35 @@ var TestRun = /** @class */ (function () {
                         noUntested++;
                     }
                 }
+                content += "<th>" + noAssertions + "</th>\n";
                 content += "<th>" + noSuccesses + "</th>\n";
                 content += "<th>" + noFailures + "</th>\n";
                 content += "<th>" + noErrors + "</th>\n";
                 content += "<th>" + noUntested + "</th>\n";
+                content += "<th>" + result.runTime + " ms</th>\n";
                 content += "</tr>\n";
             }
             content += "</table>\n";
+            for (var i = 0; i < this.results.length; i++) {
+                var result = this.results[i];
+                var index = i + 1;
+                content += "<h2 ><a name=a" + index + ">" + index + " " + result.testName + "</a></h2>\n";
+                content += "<table border=1>\n";
+                content += "<tr>\n";
+                content += "<th>Status</th>\n";
+                content += "<th>Assertion</th>\n";
+                content += "<th>Message</th>\n";
+                content += "</tr>\n";
+                for (var a = 0; a < result.assertions.length; a++) {
+                    var assertion = result.assertions[a];
+                    content += "<tr>\n";
+                    content += "<td>" + Status[assertion.status] + "</td>\n";
+                    content += "<td>" + assertion.assertion + "</td>\n";
+                    content += "<td>" + assertion.message + "</td>\n";
+                    content += "</tr>\n";
+                }
+                content += "</table>\n";
+            }
             content += "</body>\n";
             content += "</html>\n";
             var fs = require('fs');
@@ -622,7 +647,7 @@ var Tasks = /** @class */ (function () {
             new Parameter("dir", "Name of a directory below the project directory.", "string", false)
         ], function (bee, config) {
             if (!config.dir) {
-                return TaskResult.Error("Error: missing parameter config.dir");
+                return TaskResult.Error("Error: missing parameter dir");
             }
             else {
                 var path = require('path');
@@ -632,6 +657,21 @@ var Tasks = /** @class */ (function () {
                     throw "Error: rmdir is not allowed outside of working directory.";
                 }
                 return tasks.exec.run(bee, "rm -r " + deletedir);
+            }
+        });
+        /**
+         * - open ------------------------------------------------------------------------------------------
+         */
+        this.open = new Task(tasks, "Open a file with associated app in desktop environment.", [
+            new Parameter("file", "Name of file to open.", "string", false)
+        ], function (bee, config) {
+            if (!config.file) {
+                return TaskResult.Error("Error: missing parameter file");
+            }
+            else {
+                var path = require('path');
+                var file = path.resolve(config.file);
+                return tasks.exec.run(bee, "open " + file);
             }
         });
     }

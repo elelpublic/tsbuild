@@ -67,6 +67,7 @@ class Tasks {
   tsc: Task;
   test: Task;
   rmdir: Task;
+  open: Task;
 
   constructor() {
 
@@ -222,7 +223,7 @@ class Tasks {
       ],
       function( bee: Bee, config ) {
         if( !config.dir ) {
-          return TaskResult.Error( "Error: missing parameter config.dir" );
+          return TaskResult.Error( "Error: missing parameter dir" );
         }
         else {
           const path = require( 'path' );
@@ -236,6 +237,27 @@ class Tasks {
       }
     );
     
+    /**
+     * - open ------------------------------------------------------------------------------------------
+     */
+    this.open = new Task(
+      tasks,
+      "Open a file with associated app in desktop environment.",
+      [
+        new Parameter( "file", "Name of file to open.", "string", false )
+      ],
+      function( bee: Bee, config ) {
+        if( !config.file ) {
+          return TaskResult.Error( "Error: missing parameter file" );
+        }
+        else {
+          const path = require( 'path' );
+          let file = path.resolve( config.file );
+          return tasks.exec.run( bee, "open " + file );
+        }
+      }
+    );
+
   }
 };
 

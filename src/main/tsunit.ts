@@ -31,14 +31,14 @@ class TestRun {
     let status = Status.UNTESTED;
     let message = description + ", expected: true, actual: " + actual;
     if( actual ) {
-      let status = Status.SUCCESS;
+      status = Status.SUCCESS;
       if( !this.newLogging ) {
         this.log.logOk( "OK: " + message );
       }
       this.sums.addSuccess();
     }
     else {
-      let status = Status.FAILED;
+      status = Status.FAILED;
       if( !this.newLogging ) {
         this.log.logFailure( "Failed: " + message );
       }
@@ -263,21 +263,25 @@ class TestRun {
 
       content += "<table border=1>\n";
       content += "<tr>\n";
+      content += "<th>#</th>\n";
       content += "<th>Name</th>\n";
-      content += "<th>Runtime ms</th>\n";
       content += "<th>Status</th>\n";
+      content += "<th>Assertions</th>\n";
       content += "<th>Successes</th>\n";
       content += "<th>Failures</th>\n";
       content += "<th>Errors</th>\n";
       content += "<th>Untested</th>\n";
+      content += "<th>Runtime</th>\n";
       content += "</tr>\n";
 
       for( let i = 0; i < this.results.length; i++ ) {
+
+        let index = i+1;
         let result = this.results[ i ];
 
         content += "<tr>\n";
-        content += "<th>" + result.testName + "</th>\n";
-        content += "<th>" + result.runTime + "</th>\n";
+        content += "<th>" + index + "</th>\n";
+        content += "<th><a href=#a" + index + ">" + result.testName + "</a></th>\n";
         content += "<th>" + result.status + "</th>\n";
 
         let noAssertions = result.assertions.length;
@@ -302,15 +306,42 @@ class TestRun {
 
         }  
 
+        content += "<th>" + noAssertions + "</th>\n";
         content += "<th>" + noSuccesses + "</th>\n";
         content += "<th>" + noFailures + "</th>\n";
         content += "<th>" + noErrors + "</th>\n";
         content += "<th>" + noUntested + "</th>\n";
+        content += "<th>" + result.runTime + " ms</th>\n";
         content += "</tr>\n";
   
       }
 
       content += "</table>\n";
+
+      for( let i = 0; i < this.results.length; i++ ) {
+        let result = this.results[ i ];
+        let index = i+1;
+        content += "<h2 ><a name=a" + index + ">" + index + " " + result.testName + "</a></h2>\n";
+
+        content += "<table border=1>\n";
+        content += "<tr>\n";
+        content += "<th>Status</th>\n";
+        content += "<th>Assertion</th>\n";
+        content += "<th>Message</th>\n";
+        content += "</tr>\n";
+
+        for( let a = 0; a < result.assertions.length; a++ ) {
+          let assertion = result.assertions[ a ];
+          content += "<tr>\n";
+          content += "<td>" + Status[ assertion.status ] + "</td>\n";
+          content += "<td>" + assertion.assertion + "</td>\n";
+          content += "<td>" + assertion.message + "</td>\n";
+          content += "</tr>\n";  
+        }
+
+        content += "</table>\n";
+
+      }
 
       content += "</body>\n";
       content += "</html>\n";

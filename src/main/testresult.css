@@ -1,0 +1,30 @@
+body {
+  font-family: sans-serif;
+  font-weight: normal;
+}
+
+table, th, td {
+  border: 1px solid gray;
+  border-collapse: collapse;
+  padding: 2px;
+}
+
+thead {
+  background-color: lightgray;
+}
+
+.FAILED {
+  background-color: salmon;
+}
+
+.ERROR {
+  background-color: plum;
+}
+
+.SUCCESS {
+  background-color: lightgreen;
+}
+
+.UNTESTED {
+  background-color: yellow;
+}

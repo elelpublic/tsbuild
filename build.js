@@ -36,6 +36,7 @@ exports.setup = function( project ) {
     code: function( bee ) {
       bee.run( bee.tasks.tsc.run( bee, { file: "src/test/DemoCode.ts", outDir: "target" }) );
       bee.run( bee.tasks.exec.run( bee, { command: "cp src/test/DemoTest.js target" }) );
+      bee.run( bee.tasks.exec.run( bee, { command: "cp src/main/testresult.css target" }) );
     }
   };
 

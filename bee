@@ -181,9 +181,9 @@ var TestRun = /** @class */ (function () {
                 var result = this.results[i];
                 console.log("");
                 console.log("--------------------------------------------------------");
-                console.log("Test " + i + " " + result.testName);
+                console.log("Test " + (i + 1) + " " + result.testName);
                 console.log("runtime: " + result.runTime + " ms");
-                console.log("result: " + result.status);
+                console.log("result: " + Status[result.status]);
                 if (result.message) {
                     console.log(result.message);
                 }
@@ -227,6 +227,7 @@ var TestRun = /** @class */ (function () {
         else if (config.type == Type.HTML) {
             var content = "<html>\n";
             content += "<head>\n";
+            content += "<link rel=\"stylesheet\" href=\"testresult.css\">\n";
             content += "<title>\n";
             content += "Test results for " + this.name;
             content += "</title>\n";
@@ -235,8 +236,8 @@ var TestRun = /** @class */ (function () {
             content += "<h1>\n";
             content += "Test results for " + this.name;
             content += "</h1>\n";
-            content += "<table border=1>\n";
-            content += "<tr>\n";
+            content += "<table>\n";
+            content += "<thead>\n";
             content += "<th>#</th>\n";
             content += "<th>Name</th>\n";
             content += "<th>Status</th>\n";
@@ -246,14 +247,14 @@ var TestRun = /** @class */ (function () {
             content += "<th>Errors</th>\n";
             content += "<th>Untested</th>\n";
             content += "<th>Runtime</th>\n";
-            content += "</tr>\n";
+            content += "</thead>\n";
             for (var i = 0; i < this.results.length; i++) {
                 var index = i + 1;
                 var result = this.results[i];
-                content += "<tr>\n";
-                content += "<th>" + index + "</th>\n";
-                content += "<th><a href=#a" + index + ">" + result.testName + "</a></th>\n";
-                content += "<th>" + Status[result.status] + "</th>\n";
+                content += "<tr class=\"" + Status[result.status] + "\">\n";
+                content += "<td>" + index + "</td>\n";
+                content += "<td><a href=#a" + index + ">" + result.testName + "</a></td>\n";
+                content += "<td>" + Status[result.status] + "</td>\n";
                 var noAssertions = result.assertions.length;
                 var noSuccesses = 0;
                 var noFailures = 0;
@@ -274,12 +275,12 @@ var TestRun = /** @class */ (function () {
                         noUntested++;
                     }
                 }
-                content += "<th>" + noAssertions + "</th>\n";
-                content += "<th>" + noSuccesses + "</th>\n";
-                content += "<th>" + noFailures + "</th>\n";
-                content += "<th>" + noErrors + "</th>\n";
-                content += "<th>" + noUntested + "</th>\n";
-                content += "<th>" + result.runTime + " ms</th>\n";
+                content += "<td>" + noAssertions + "</td>\n";
+                content += "<td>" + noSuccesses + "</td>\n";
+                content += "<td>" + noFailures + "</td>\n";
+                content += "<td>" + noErrors + "</td>\n";
+                content += "<td>" + noUntested + "</td>\n";
+                content += "<td>" + result.runTime + " ms</td>\n";
                 content += "</tr>\n";
             }
             content += "</table>\n";
@@ -287,15 +288,15 @@ var TestRun = /** @class */ (function () {
                 var result = this.results[i];
                 var index = i + 1;
                 content += "<h2 ><a name=a" + index + ">" + index + " " + result.testName + "</a></h2>\n";
-                content += "<table border=1>\n";
-                content += "<tr>\n";
+                content += "<table>\n";
+                content += "<thead>\n";
                 content += "<th>Status</th>\n";
                 content += "<th>Assertion</th>\n";
                 content += "<th>Message</th>\n";
-                content += "</tr>\n";
+                content += "</thead>\n";
                 for (var a = 0; a < result.assertions.length; a++) {
                     var assertion = result.assertions[a];
-                    content += "<tr>\n";
+                    content += "<tr class=\"" + Status[assertion.status] + "\">\n";
                     content += "<td>" + Status[assertion.status] + "</td>\n";
                     content += "<td>" + assertion.assertion + "</td>\n";
                     content += "<td>" + assertion.message + "</td>\n";
@@ -432,6 +433,27 @@ var Status;
     Status[Status["FAILED"] = 2] = "FAILED";
     Status[Status["ERROR"] = 3] = "ERROR";
 })(Status || (Status = {}));
+function statusName(status) {
+    return Status[status];
+}
+/**
+ * Collect a compound status by adding states of partial executions
+ *
+ * @param totalStatus Total compound status
+ * @param status Status to be added to total
+ *
+ */
+function addStatus(totalStatus, status) {
+    if (totalStatus == Status.UNTESTED) {
+        return status;
+    }
+    else if (status == Status.ERROR) {
+        return status;
+    }
+    else if (status == Status.FAILED) {
+        return totalStatus == Status.ERROR ? Status.ERROR : Status.FAILED;
+    }
+}
 var Assertion = /** @class */ (function () {
     function Assertion(status, assertion, message) {
         this.status = status;
@@ -677,6 +699,11 @@ var Tasks = /** @class */ (function () {
 ;
 var Bee = /** @class */ (function () {
     function Bee(commandLine) {
+        this.interface = {
+            Status: Status,
+            addStatus: addStatus,
+            statusName: statusName
+        };
         this.tasks = new Tasks();
         this.run = function (result) {
             if (result.error) {

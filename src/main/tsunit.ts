@@ -174,7 +174,7 @@ class TestRun {
         if( this.cleanupCode != null ) {
           this.cleanupCode();
         }
-      }
+      } 
       catch( ex ) {
         if( !this.newLogging ) {
           this.log.log( "Error in cleanup: " + testName + " " + ex );
@@ -205,9 +205,9 @@ class TestRun {
         let result = this.results[ i ];
         console.log( "" );
         console.log( "--------------------------------------------------------" );
-        console.log( "Test " + i + " " + result.testName );
+        console.log( "Test " + (i+1) + " " + result.testName );
         console.log( "runtime: " + result.runTime + " ms" );
-        console.log( "result: " + result.status );
+        console.log( "result: " + Status[ result.status ] );
         if( result.message ) {
           console.log( result.message );
         }
@@ -258,6 +258,7 @@ class TestRun {
 
       let content = "<html>\n";
       content += "<head>\n";
+      content += "<link rel=\"stylesheet\" href=\"testresult.css\">\n";
       content += "<title>\n";
       content += "Test results for " + this.name;
       content += "</title>\n";
@@ -267,8 +268,8 @@ class TestRun {
       content += "Test results for " + this.name;
       content += "</h1>\n";
 
-      content += "<table border=1>\n";
-      content += "<tr>\n";
+      content += "<table>\n";
+      content += "<thead>\n";
       content += "<th>#</th>\n";
       content += "<th>Name</th>\n";
       content += "<th>Status</th>\n";
@@ -278,17 +279,17 @@ class TestRun {
       content += "<th>Errors</th>\n";
       content += "<th>Untested</th>\n";
       content += "<th>Runtime</th>\n";
-      content += "</tr>\n";
+      content += "</thead>\n";
 
       for( let i = 0; i < this.results.length; i++ ) {
 
         let index = i+1;
         let result = this.results[ i ];
 
-        content += "<tr>\n";
-        content += "<th>" + index + "</th>\n";
-        content += "<th><a href=#a" + index + ">" + result.testName + "</a></th>\n";
-        content += "<th>" + Status[ result.status ] + "</th>\n";
+        content += "<tr class=\"" + Status[ result.status ] + "\">\n";
+        content += "<td>" + index + "</td>\n";
+        content += "<td><a href=#a" + index + ">" + result.testName + "</a></td>\n";
+        content += "<td>" + Status[ result.status ] + "</td>\n";
 
         let noAssertions = result.assertions.length;
         let noSuccesses = 0;
@@ -312,12 +313,12 @@ class TestRun {
 
         }  
 
-        content += "<th>" + noAssertions + "</th>\n";
-        content += "<th>" + noSuccesses + "</th>\n";
-        content += "<th>" + noFailures + "</th>\n";
-        content += "<th>" + noErrors + "</th>\n";
-        content += "<th>" + noUntested + "</th>\n";
-        content += "<th>" + result.runTime + " ms</th>\n";
+        content += "<td>" + noAssertions + "</td>\n";
+        content += "<td>" + noSuccesses + "</td>\n";
+        content += "<td>" + noFailures + "</td>\n";
+        content += "<td>" + noErrors + "</td>\n";
+        content += "<td>" + noUntested + "</td>\n";
+        content += "<td>" + result.runTime + " ms</td>\n";
         content += "</tr>\n";
   
       }
@@ -329,16 +330,16 @@ class TestRun {
         let index = i+1;
         content += "<h2 ><a name=a" + index + ">" + index + " " + result.testName + "</a></h2>\n";
 
-        content += "<table border=1>\n";
-        content += "<tr>\n";
+        content += "<table>\n";
+        content += "<thead>\n";
         content += "<th>Status</th>\n";
         content += "<th>Assertion</th>\n";
         content += "<th>Message</th>\n";
-        content += "</tr>\n";
+        content += "</thead>\n";
 
         for( let a = 0; a < result.assertions.length; a++ ) {
           let assertion = result.assertions[ a ];
-          content += "<tr>\n";
+          content += "<tr class=\"" + Status[ assertion.status ] + "\">\n";
           content += "<td>" + Status[ assertion.status ] + "</td>\n";
           content += "<td>" + assertion.assertion + "</td>\n";
           content += "<td>" + assertion.message + "</td>\n";

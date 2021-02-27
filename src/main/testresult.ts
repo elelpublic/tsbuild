@@ -2,6 +2,29 @@ enum Status {
   UNTESTED, SUCCESS, FAILED, ERROR
 }
 
+function statusName( status: Status ) : String {
+  return Status[ status ];
+}
+
+/**
+ * Collect a compound status by adding states of partial executions
+ * 
+ * @param totalStatus Total compound status 
+ * @param status Status to be added to total
+ * 
+ */
+function addStatus( totalStatus: Status, status: Status ) : Status {
+  if( totalStatus == Status.UNTESTED ) {
+    return status;
+  }
+  else if( status == Status.ERROR ) {
+    return status;
+  }
+  else if( status == Status.FAILED ) {
+    return totalStatus == Status.ERROR ? Status.ERROR : Status.FAILED;
+  }
+}
+
 class Assertion {
   status: Status;
   assertion: string;

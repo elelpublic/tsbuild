@@ -264,6 +264,11 @@ class Tasks {
 class Bee {
   commandLine: CommandLine;
   testRun: TestRun;
+  interface = {
+    Status: Status,
+    addStatus: addStatus,
+    statusName: statusName
+  }
   constructor( commandLine: CommandLine ) {
     this.commandLine = commandLine;
   }

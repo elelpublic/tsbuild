@@ -22,7 +22,7 @@ exports.test = function( bee ) {
     testRun.assertEqual( "size is 0 initially", 0, 0 );
     // testRun.assertNull( "result should be null", s.getResult() );
     // testRun.assertNotNull( "name should not be null", s.getName() );
-  
+
   });
   
   // a test has a name and may contain a number of assertions
@@ -31,6 +31,20 @@ exports.test = function( bee ) {
     throw "Error in test code"
   
   });
+
+  testRun.test( "Status compounding", () => {
+
+    let S = bee.interface.Status;
+    let addStatus = bee.interface.addStatus;
+    let n = bee.interface.statusName;
+
+    testRun.assertEqual( "adding anything to UNTESTED is the new thing", n( S.UNTESTED ), n( addStatus( S.UNTESTED, S.UNTESTED ) ) );
+    testRun.assertEqual( "adding anything to UNTESTED is the new thing", n( S.SUCCESS ), n( addStatus( S.UNTESTED, S.SUCCESS ) ) );
+    testRun.assertEqual( "adding anything to UNTESTED is the new thing", n( S.FAILED ), n( addStatus( S.UNTESTED, S.FAILED ) ) );
+    testRun.assertEqual( "adding anything to UNTESTED is the new thing", n( S.ERROR ), n( addStatus( S.UNTESTED, S.ERROR ) ) );
+  
+  });
+
 
   // ... add more tests here
   

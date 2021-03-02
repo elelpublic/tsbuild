@@ -1,6 +1,6 @@
 body {
-  font-family: sans-serif;
-  font-weight: normal;
+  /* font-family: sans-serif; 
+  font-weight: normal; */
 }
 
 table, th, td {
@@ -10,19 +10,19 @@ table, th, td {
 }
 
 thead {
-  background-color: lightgray;
+  background-color: rgb(235, 235, 235);
 }
 
 .FAILED {
-  background-color: salmon;
+  color: red;
 }
 
 .ERROR {
-  background-color: plum;
+  color: rgb(233, 19, 233);
 }
 
 .SUCCESS {
-  background-color: lightgreen;
+  color: green;
 }
 
 .UNTESTED {

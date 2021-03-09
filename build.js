@@ -16,6 +16,7 @@ exports.setup = function( project ) {
         "src/main/cli.ts",
         "src/main/bee.ts" 
       ] } ) );
+      bee.run( bee.tasks.file2string.run( bee, { input: "src/main/testresult.css", output: "target/css.ts" } ) );
     }
   };
 

@@ -22,6 +22,7 @@ class CommandLine {
   describeTask: string;
   showHelp = false;
   classicLogging = false;
+  createSampleTest = false;
 
 }
 
@@ -77,6 +78,9 @@ function parseCommandLine() : CommandLine {
       else if( arg == "-c" ) {
         commandLine.classicLogging = true;
       }
+      else if( arg == "--sampletest" ) {
+        commandLine.createSampleTest = true;
+      }
       else {
         commandLine.targets.push( arg );
       }
@@ -117,6 +121,7 @@ function usage( messageText: string ) {
     console.log( "  --nofail ........... continue on errors" );
     console.log( "  -v ................. verbose, show more information on what is  executed" );
     console.log( "  -t ................. list all tasks" );
+    console.log( "  --sampletest ....... create a sample test stub" );
 
   }
 

@@ -72,6 +72,7 @@ let project = new Project();
 if( commandLine.isEmpty ) {
   console.log( "" );
   console.log( "Use 'bee -h' to show help." );
+  console.log( "Use 'bee -p' to show information about this project." );
 }
 else if( commandLine.showHelp ) {
   usage( null );
@@ -85,6 +86,9 @@ else {
   }
   else if( commandLine.showProjectInformation ) {
     usage( null );
+  }
+  else if( commandLine.createSampleTest ) {
+    createSampleTest();
   }
   else {
   
@@ -245,3 +249,119 @@ function loadBuildFile() : Project {
 
 }
 
+
+/**
+ * Create a sample test stub
+ * 
+ */
+function createSampleTest() {
+
+  let o = ""
+
+  o += "exports.test = function( bee ) {\n"
+  o += "\n"
+  o += "  let testRun = bee.getTestRun()\n"
+  o += "\n"
+  o += "  // setup code will be performed before every test\n"
+  o += "  testRun.setup( () => {\n"
+  o += "\n"
+  o += "  })\n"
+  o += "\n"
+  o += "  // cleanup code will be performed after every test\n"
+  o += "  testRun.cleanup( () => {\n"
+  o += "\n"
+  o += "  })\n"
+  o += "\n"
+  o += "  // a test has a name and may contain a number of assertions\n"
+  o += "  testRun.test( \"Name of test case\", () => {\n"
+  o += "    testRun.assertTrue( \"should be true\", true )\n"
+  o += "    testRun.assertEqual( \"size is 0 initially\", 0, 0 )\n"
+  o += "    testRun.assertNull( \"result should be null\", null )\n"
+  o += "    testRun.assertNotNull( \"result should not be null\", result )\n"
+  o += "  })\n"
+  o += "\n"
+  o += "  // ... add more tests here\n"
+  o += "\n"
+  o += "  // finally print some summary information about the tests\n"
+  o += "  let testReport = \"target/testreport.html\"\n"
+  o += "  testRun.logSummary()\n"
+  o += "  let config = {\n"
+  o += "    type: 1,\n"
+  o += "    file: testReport,\n"
+  o += "    showAssertionResults: true\n"
+  o += "  }\n"
+  o += "  testRun.report( config )\n"
+  o += "  bee.tasks.open.run( bee, { file: \"target/testreport.html\" })\n"
+  o += "\n"
+  o += "}\n"
+
+  let fs = require('fs')
+  let filename = "sampletest.js"
+  if( fs.existsSync( filename ) ) {
+    console.log( "File 'sampletest.js' already exists." )
+    project.error = true
+  }
+  else {
+    fs.writeFileSync( filename, o )
+    console.log( "File 'sampletest.js' was created." )
+  }
+
+}
+
+/**
+ * Create a sample css file for styling html test results
+ * 
+ */
+function createSampleCss() {
+
+  let o = ""
+
+  o += "exports.test = function( bee ) {\n"
+  o += "\n"
+  o += "  let testRun = bee.getTestRun()\n"
+  o += "\n"
+  o += "  // setup code will be performed before every test\n"
+  o += "  testRun.setup( () => {\n"
+  o += "\n"
+  o += "  })\n"
+  o += "\n"
+  o += "  // cleanup code will be performed after every test\n"
+  o += "  testRun.cleanup( () => {\n"
+  o += "\n"
+  o += "  })\n"
+  o += "\n"
+  o += "  // a test has a name and may contain a number of assertions\n"
+  o += "  testRun.test( \"Name of test case\", () => {\n"
+  o += "    testRun.assertTrue( \"should be true\", true )\n"
+  o += "    testRun.assertEqual( \"size is 0 initially\", 0, 0 )\n"
+  o += "    testRun.assertNull( \"result should be null\", null )\n"
+  o += "    testRun.assertNotNull( \"result should not be null\", result )\n"
+  o += "  })\n"
+  o += "\n"
+  o += "  // ... add more tests here\n"
+  o += "\n"
+  o += "  // finally print some summary information about the tests\n"
+  o += "  let testReport = \"target/testreport.html\"\n"
+  o += "  testRun.logSummary()\n"
+  o += "  let config = {\n"
+  o += "    type: 1,\n"
+  o += "    file: testReport,\n"
+  o += "    showAssertionResults: true\n"
+  o += "  }\n"
+  o += "  testRun.report( config )\n"
+  o += "  bee.tasks.open.run( bee, { file: \"target/testreport.html\" })\n"
+  o += "\n"
+  o += "}\n"
+
+  let fs = require('fs')
+  let filename = "sampletest.js"
+  if( fs.existsSync( filename ) ) {
+    console.log( "File 'sampletest.js' already exists." )
+    project.error = true
+  }
+  else {
+    fs.writeFileSync( filename, o )
+    console.log( "File 'sampletest.js' was created." )
+  }
+
+}

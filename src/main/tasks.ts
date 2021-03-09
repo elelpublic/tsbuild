@@ -39,6 +39,7 @@ class TaskResult {
  * A task is one operation which bee can perform
  */
 class Task {
+
   tasks: Tasks;
   description: string;
   parameters: Array<Parameter>;
@@ -57,17 +58,19 @@ class Task {
     this.parameters = parameters;
     this.run = run;
   }
+
 }
 
 
 class Tasks {
   
-  exec: Task;
-  call: Task;
-  tsc: Task;
-  test: Task;
-  rmdir: Task;
-  open: Task;
+  exec: Task
+  call: Task
+  tsc: Task
+  test: Task
+  rmdir: Task
+  open: Task
+  file2string: Task
 
   constructor() {
 
@@ -254,6 +257,53 @@ class Tasks {
           const path = require( 'path' );
           let file = path.resolve( config.file );
           return tasks.exec.run( bee, "open " + file );
+        }
+      }
+    );
+
+    /**
+     * - file2string ------------------------------------------------------------------------------------------
+     */
+    this.file2string = new Task(
+      tasks,
+      "Read a text file and create a js/ts file with the file content as a string variable.",
+      [
+        new Parameter( "input", "Name of file to read.", "string", false ),
+        new Parameter( "ouput", "Name of js/ts file to write.", "string", false )
+      ],
+      function( bee: Bee, config ) {
+        if( !config.input ) {
+          return TaskResult.Error( "Error: missing parameter input" );
+        }
+        else if( !config.output ) {
+          return TaskResult.Error( "Error: missing parameter output" );
+        }
+        else {
+          const path = require( 'path' );
+          let file = path.resolve( config.input );
+          const readline = require( 'readline' );
+          let fs = require( 'fs' );
+          if( !fs.existsSync( file ) ) {
+            return TaskResult.Error( "Input file not found: " + file );
+          }
+          else {
+            const readInterface = readline.createInterface({
+              input: fs.createReadStream( file ),
+              output: process.stdout,
+              console: false
+            });
+            // readInterface.on( 'line', function( line ) {
+            //   console.log( ">>> " + line );
+            // });
+
+            const start = async () =>{
+              for await (const line of readInterface ) {
+                console.log( ">>> " + line )
+              }
+            }
+            start()
+            return TaskResult.OK();  
+          }
         }
       }
     );

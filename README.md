@@ -42,3 +42,5 @@ Then follow the messages on screen.
 * no parameter should show usage and target list
 * target dependencies
 * targets instead of scripts
+
+# eof

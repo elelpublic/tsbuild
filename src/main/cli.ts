@@ -221,11 +221,11 @@ function log( line: string ) {
  */
 function listTasks( taskName: string ) {
 
-  let taskNames = Object.keys( bee );
+  let taskNames = Object.keys( bee.tasks );
 
   if( taskName && taskNames.indexOf( taskName ) != -1 ) {
     // describe a task in detail
-    let task = bee[ taskName ];
+    let task = bee.tasks[ taskName ];
     console.log( "# Task: " + taskName );
     //console.log( "" );
     console.log( "  Description: " + (task.description ? task.description : " - no description - " ) );
@@ -258,7 +258,7 @@ function listTasks( taskName: string ) {
     }
     for( let i = 0; i < taskNames.length; i++ ) {
       let taskName = taskNames[ i ];
-      let task = bee[ taskName ];
+      let task = bee.tasks[ taskName ];
       console.log( "  " + taskName + " " + ".".repeat( length + 6 - taskName.length ) 
         + " " + (task.description ? task.description : " - no description -" ) );
     }
